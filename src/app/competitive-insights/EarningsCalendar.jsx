@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { companyLogos } from "../../../public/data";
+import { CircularProgress } from "@mui/material";
 
 // 🗓️ Get today's date in YYYY-MM-DD format
 const getTodayDate = () => {
@@ -132,11 +133,17 @@ const EarningsCalendar = () => {
         // 📡 Fetch Date-wise Calendar Data
         endpoint = `/api/earnings-calendar-date?date=${dateRange}&page=${newPage}&size=${size}`;
       }
-
-      const res = await fetch(endpoint, {
-        body: JSON.stringify({ selectedCompanies: selectedCompanies }),
-        method: activeTab === "company" ? "POST" : "GET",
-      });
+      let res;
+      if (activeTab === "company") {
+        res = await fetch(endpoint, {
+          body: JSON.stringify({ selectedCompanies: selectedCompanies }),
+          method: "POST",
+        });
+      } else {
+        res = await fetch(endpoint, {
+          method: "GET",
+        });
+      }
       const result = await res.json();
 
       if (result.success) {
@@ -154,6 +161,8 @@ const EarningsCalendar = () => {
   // 📚 Initial Data Fetch when Tab, Symbol, or Date Changes
   useEffect(() => {
     // ✅ Reset to page 1 when params change
+    console.log("🔄 Fetching data...");
+
     if (selectedCompanies.length > 0) {
       fetchData(1);
     }
@@ -234,8 +243,8 @@ const EarningsCalendar = () => {
         }}
       >
         {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <Loader size={32} className="animate-spin text-purple-500" />
+          <div className="flex justify-center items-center h-40 text-purple-500">
+            <CircularProgress size={32} sx={{ color: "inherit" }} />
           </div>
         ) : filteredData.length === 0 ? (
           !selectedCompanies.length ? (

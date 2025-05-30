@@ -76,8 +76,6 @@ export default function SentimentAnalysis() {
     };
 
 
-
-
     const getSentimentAnalysis = async () => {
         setIsSentimentsLoading(true);
         try {

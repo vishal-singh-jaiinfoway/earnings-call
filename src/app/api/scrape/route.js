@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 const cheerio = require("cheerio");
 import { parseStringPromise } from "xml2js";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, readFile } from "fs/promises";
 import path from "path";
+import { existsSync } from "fs";
+
+
 // ✅ SEC API Constants
 const BASE_URL = "https://www.sec.gov/Archives/edgar/data";
 const SEARCH_URL = "https://data.sec.gov/submissions/";
@@ -507,15 +510,183 @@ function getQuarterFromDate(dateString) {
 
 
 // ✅ Main API Handler - For GET Requests
+// export async function GET(req) {
+//   try {
+//     const { searchParams } = new URL(req.url);
+//     const symbol = searchParams.get("symbol");
+//     const reportType = searchParams.get("reportType");
+
+//     // 🎯 Get CIK from Symbol
+//     let cik = await getCIKFromSymbol(symbol);
+
+//     if (!cik) {
+//       return NextResponse.json(
+//         { error: `Unable to fetch CIK for symbol: ${symbol}` },
+//         { status: 400 }
+//       );
+//     }
+
+//     if (reportType === "annual") {
+//     // 🔍 Fetch 10-K Filings or Alternatives
+//       let filingURLs = await get10KFilings(cik, reportType);
+//       if (filingURLs.length === 0) {
+//         console.warn(`No 10-K/alternative filings found for CIK ${cik}.`);
+//         // 🎯 Check for Parent Company Filings
+//         const parentCIK = await getParentCompanyCIK(cik);
+//         if (parentCIK) {
+//           //console.log(`🔄 Checking Parent Company CIK: ${parentCIK}`);
+//           filingURLs = await get10KFilings(parentCIK, reportType);
+//         }
+//       }
+
+//       if (filingURLs.length === 0) {
+//         return NextResponse.json(
+//           { success: false, error: "No relevant filings found" },
+//           { status: 404 }
+//         );
+//       }
+
+
+
+//       // 🧠 Extract Financial Data from All Filings
+//       const financialDataPromises = filingURLs.map(async (filingURL) => {
+//         const financialData = await extractFinancialData(filingURL.url, filingURL.periodOfReport, filingURL.dateFiled, filingURL.formType, symbol);
+//         if (financialData && financialData.length > 0) {
+//           const year = new Date(filingURL.periodOfReport).getFullYear();
+//           const reportType = filingURL.formType === "10-K" ? "Annual" : "Quarterly";
+
+//           // ✅ Construct directory path dynamically
+//           const directoryPath = path.join(
+//             process.cwd(),
+//             "public",
+//             "financial-metrics",
+//             symbol,
+//             reportType,
+//             String(year),
+//           );
+
+//           try {
+//             // 🎯 Create the directory recursively if it doesn't exist
+//             await mkdir(directoryPath, { recursive: true });
+
+//             // 📄 Define file path and write the file
+//             const filePath = path.join(directoryPath, `${filingURL.formType}.json`);
+//             await writeFile(filePath, JSON.stringify(financialData, null, 2));
+//             console.log(`✅ File written successfully: ${filePath}`);
+//           } catch (error) {
+//             console.error("Error creating directory or writing file:", error);
+//           }
+
+//           // ✅ Return processed data
+//           return {
+//             symbol,
+//             formType: filingURL.formType,
+//             year,
+//             data: financialData,
+//           };
+//         }
+//         return null;
+//       });
+
+
+//       // 🎯 Await All Filings and Filter Valid Results
+//       const allFinancialData = (await Promise.all(financialDataPromises)).filter(
+//         Boolean
+//       );
+
+//       if (allFinancialData.length === 0) {
+//         return NextResponse.json(
+//           { success: false, error: "No financial data extracted" },
+//           { status: 404 }
+//         );
+//       }
+//       return NextResponse.json({ success: true, financialData: allFinancialData }, { status: 200 });
+
+//     } else {
+//       const filings = await get10QFilings(cik);
+
+
+
+//       // 🧠 Extract Financial Data from All Filings
+//       const financialDataPromises_10_Q = filings.map(async (filingURL) => {
+//         const financialData = await extractFinancialData(filingURL.url, filingURL.periodOfReport, filingURL.dateFiled, filingURL.formType);
+//         if (financialData && financialData.length > 0) {
+//           const year = new Date(filingURL.periodOfReport).getFullYear();
+//           const quarter = getQuarterFromDate(filingURL.periodOfReport);
+//           const reportType = filingURL.formType === "10-K" ? "Annual" : "Quarterly";
+
+//           // ✅ Construct directory path dynamically
+//           const directoryPath_10_Q = path.join(
+//             process.cwd(),
+//             "public",
+//             "financial-metrics",
+//             symbol,
+//             reportType,
+//             String(year)
+//           );
+
+//           try {
+//             // 🎯 Create the directory recursively if it doesn't exist
+//             await mkdir(directoryPath_10_Q, { recursive: true });
+
+//             // 📄 Define file path and write the file
+//             const filePath = path.join(directoryPath_10_Q, `${quarter}.json`);
+//             await writeFile(filePath, JSON.stringify(financialData, null, 2));
+//             console.log(`✅ File written successfully: ${filePath}`);
+//           } catch (error) {
+//             console.error("Error creating directory or writing file:", error);
+//           }
+
+//           // ✅ Return processed data
+//           return {
+//             symbol,
+//             formType: filingURL.formType,
+//             year,
+//             data: financialData,
+//           };
+//         }
+//         return null;
+//       });
+
+
+//       // 🎯 Await All Filings and Filter Valid Results
+//       const allFinancialData_10_Q = (await Promise.all(financialDataPromises_10_Q)).filter(
+//         Boolean
+//       );
+
+//       if (allFinancialData_10_Q.length === 0) {
+//         return NextResponse.json(
+//           { success: false, error: "No financial data extracted" },
+//           { status: 404 }
+//         );
+//       }
+
+//       return NextResponse.json({ success: true, financialData: allFinancialData_10_Q }, { status: 200 });
+
+//     }
+
+//   } catch (error) {
+//     console.error("Error processing request:", error.message);
+//     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+//   }
+// }
+
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const symbol = searchParams.get("symbol");
     const reportType = searchParams.get("reportType");
+    const forceScrape = searchParams.get("forceScrape") === "true";
 
-    // 🎯 Get CIK from Symbol
+    if (!symbol || !reportType) {
+      return NextResponse.json(
+        { error: "Missing required parameters." },
+        { status: 400 }
+      );
+    }
+
     let cik = await getCIKFromSymbol(symbol);
-
     if (!cik) {
       return NextResponse.json(
         { error: `Unable to fetch CIK for symbol: ${symbol}` },
@@ -524,14 +695,10 @@ export async function GET(req) {
     }
 
     if (reportType === "annual") {
-    // 🔍 Fetch 10-K Filings or Alternatives
       let filingURLs = await get10KFilings(cik, reportType);
       if (filingURLs.length === 0) {
-        console.warn(`No 10-K/alternative filings found for CIK ${cik}.`);
-        // 🎯 Check for Parent Company Filings
         const parentCIK = await getParentCompanyCIK(cik);
         if (parentCIK) {
-          //console.log(`🔄 Checking Parent Company CIK: ${parentCIK}`);
           filingURLs = await get10KFilings(parentCIK, reportType);
         }
       }
@@ -543,53 +710,57 @@ export async function GET(req) {
         );
       }
 
-
-
-      // 🧠 Extract Financial Data from All Filings
       const financialDataPromises = filingURLs.map(async (filingURL) => {
-        const financialData = await extractFinancialData(filingURL.url, filingURL.periodOfReport, filingURL.dateFiled, filingURL.formType, symbol);
-        if (financialData && financialData.length > 0) {
-          const year = new Date(filingURL.periodOfReport).getFullYear();
-          const reportType = filingURL.formType === "10-K" ? "Annual" : "Quarterly";
+        const year = new Date(filingURL.periodOfReport).getFullYear();
+        const directoryPath = path.join(
+          process.cwd(),
+          "public",
+          "financial-metrics",
+          symbol,
+          "Annual",
+          String(year)
+        );
+        const filePath = path.join(directoryPath, `${filingURL.formType}.json`);
 
-          // ✅ Construct directory path dynamically
-          const directoryPath = path.join(
-            process.cwd(),
-            "public",
-            "financial-metrics",
+        // 🧠 If file exists and no forceScrape, read and return cached data
+        if (!forceScrape && existsSync(filePath)) {
+          const cachedData = await readFile(filePath, "utf-8");
+          return {
             symbol,
-            reportType,
-            String(year),
-          );
+            formType: filingURL.formType,
+            year,
+            data: JSON.parse(cachedData),
+            cached: true
+          };
+        }
 
-          try {
-            // 🎯 Create the directory recursively if it doesn't exist
-            await mkdir(directoryPath, { recursive: true });
+        // 🧪 Scrape, save and return as usual
+        const financialData = await extractFinancialData(
+          filingURL.url,
+          filingURL.periodOfReport,
+          filingURL.dateFiled,
+          filingURL.formType,
+          symbol
+        );
 
-            // 📄 Define file path and write the file
-            const filePath = path.join(directoryPath, `${filingURL.formType}.json`);
-            await writeFile(filePath, JSON.stringify(financialData, null, 2));
-            console.log(`✅ File written successfully: ${filePath}`);
-          } catch (error) {
-            console.error("Error creating directory or writing file:", error);
-          }
+        if (financialData && financialData.length > 0) {
+          await mkdir(directoryPath, { recursive: true });
+          await writeFile(filePath, JSON.stringify(financialData, null, 2));
+          console.log(`✅ File written successfully: ${filePath}`);
 
-          // ✅ Return processed data
           return {
             symbol,
             formType: filingURL.formType,
             year,
             data: financialData,
+            cached: false
           };
         }
+
         return null;
       });
 
-
-      // 🎯 Await All Filings and Filter Valid Results
-      const allFinancialData = (await Promise.all(financialDataPromises)).filter(
-        Boolean
-      );
+      const allFinancialData = (await Promise.all(financialDataPromises)).filter(Boolean);
 
       if (allFinancialData.length === 0) {
         return NextResponse.json(
@@ -597,59 +768,63 @@ export async function GET(req) {
           { status: 404 }
         );
       }
+
       return NextResponse.json({ success: true, financialData: allFinancialData }, { status: 200 });
 
     } else {
       const filings = await get10QFilings(cik);
 
-
-
-      // 🧠 Extract Financial Data from All Filings
       const financialDataPromises_10_Q = filings.map(async (filingURL) => {
-        const financialData = await extractFinancialData(filingURL.url, filingURL.periodOfReport, filingURL.dateFiled, filingURL.formType);
-        if (financialData && financialData.length > 0) {
-          const year = new Date(filingURL.periodOfReport).getFullYear();
-          const quarter = getQuarterFromDate(filingURL.periodOfReport);
-          const reportType = filingURL.formType === "10-K" ? "Annual" : "Quarterly";
+        const year = new Date(filingURL.periodOfReport).getFullYear();
+        const quarter = getQuarterFromDate(filingURL.periodOfReport);
+        const directoryPath_10_Q = path.join(
+          process.cwd(),
+          "public",
+          "financial-metrics",
+          symbol,
+          "Quarterly",
+          String(year)
+        );
+        const filePath = path.join(directoryPath_10_Q, `${quarter}.json`);
 
-          // ✅ Construct directory path dynamically
-          const directoryPath_10_Q = path.join(
-            process.cwd(),
-            "public",
-            "financial-metrics",
+        // 🧠 If file exists and no forceScrape, read and return cached data
+        if (!forceScrape && existsSync(filePath)) {
+          const cachedData = await readFile(filePath, "utf-8");
+          return {
             symbol,
-            reportType,
-            String(year)
-          );
+            formType: filingURL.formType,
+            year,
+            data: JSON.parse(cachedData),
+            cached: true
+          };
+        }
 
-          try {
-            // 🎯 Create the directory recursively if it doesn't exist
-            await mkdir(directoryPath_10_Q, { recursive: true });
+        // 🧪 Scrape, save and return as usual
+        const financialData = await extractFinancialData(
+          filingURL.url,
+          filingURL.periodOfReport,
+          filingURL.dateFiled,
+          filingURL.formType
+        );
 
-            // 📄 Define file path and write the file
-            const filePath = path.join(directoryPath_10_Q, `${quarter}.json`);
-            await writeFile(filePath, JSON.stringify(financialData, null, 2));
-            console.log(`✅ File written successfully: ${filePath}`);
-          } catch (error) {
-            console.error("Error creating directory or writing file:", error);
-          }
+        if (financialData && financialData.length > 0) {
+          await mkdir(directoryPath_10_Q, { recursive: true });
+          await writeFile(filePath, JSON.stringify(financialData, null, 2));
+          console.log(`✅ File written successfully: ${filePath}`);
 
-          // ✅ Return processed data
           return {
             symbol,
             formType: filingURL.formType,
             year,
             data: financialData,
+            cached: false
           };
         }
+
         return null;
       });
 
-
-      // 🎯 Await All Filings and Filter Valid Results
-      const allFinancialData_10_Q = (await Promise.all(financialDataPromises_10_Q)).filter(
-        Boolean
-      );
+      const allFinancialData_10_Q = (await Promise.all(financialDataPromises_10_Q)).filter(Boolean);
 
       if (allFinancialData_10_Q.length === 0) {
         return NextResponse.json(
@@ -659,7 +834,6 @@ export async function GET(req) {
       }
 
       return NextResponse.json({ success: true, financialData: allFinancialData_10_Q }, { status: 200 });
-
     }
 
   } catch (error) {

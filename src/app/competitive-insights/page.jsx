@@ -7,6 +7,7 @@ import FinancialReports from "./FinancialReports";
 import CompetitiveInsights from "./CompetitiveInsights";
 import Commentary from "./Commentary";
 import Guidance from "./Guidance";
+import FinancialAnalysisDashboard from "@/components/financials/FinancialAnalysisDashboard";
 
 const Dashboard = () => {
   const [chartData, setChartData] = useState([]);
@@ -18,15 +19,16 @@ const Dashboard = () => {
       component: <EarningsCalendar />,
     },
     {
-      id: "financial-performance",
-      label: "Financial Performance",
+      id: "financial-analysis",
+      label: "Financial Analysis",
       component: (
-        <FinancialPerformance
-          chartData={chartData}
-          setChartData={setChartData}
-          userPrompts={userPrompts}
-          setUserPrompts={setUserPrompts}
-        />
+        // <FinancialPerformance
+        //   chartData={chartData}
+        //   setChartData={setChartData}
+        //   userPrompts={userPrompts}
+        //   setUserPrompts={setUserPrompts}
+        // />
+        <FinancialAnalysisDashboard></FinancialAnalysisDashboard>
       ),
     },
     {
@@ -34,21 +36,21 @@ const Dashboard = () => {
       label: "Financial Reports",
       component: <FinancialReports />,
     },
-    {
-      id: "competitive-insights",
-      label: "Competitive Strategy Insights",
-      component: <CompetitiveInsights />,
-    },
-    {
-      id: "commentary",
-      label: "Management Commentary & Market Sentiment",
-      component: <Commentary />,
-    },
-    {
-      id: "guidance",
-      label: "Forward-Looking Guidance & Risk Factors",
-      component: <Guidance />,
-    },
+    // {
+    //   id: "competitive-insights",
+    //   label: "Competitive Strategy Insights",
+    //   component: <CompetitiveInsights />,
+    // },
+    // {
+    //   id: "commentary",
+    //   label: "Management Commentary & Market Sentiment",
+    //   component: <Commentary />,
+    // },
+    // {
+    //   id: "guidance",
+    //   label: "Forward-Looking Guidance & Risk Factors",
+    //   component: <Guidance />,
+    // },
   ];
   const [activeTab, setActiveTab] = useState(TABS[0].id);
 

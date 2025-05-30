@@ -1,6 +1,5 @@
-import { InvokeAgentCommand, BedrockAgentRuntimeClient } from "@aws-sdk/client-bedrock-agent-runtime";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { BedrockRuntimeClient, InvokeModelWithResponseStreamCommand } from "@aws-sdk/client-bedrock-runtime";
+import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
 
 // Ensure AWS credentials are available
 if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
@@ -26,11 +25,7 @@ const bedrockClient = new BedrockRuntimeClient({
 
 const quarters = { "1st": 1, "2nd": 2, "3rd": 3, "4th": 4 };
 
-// Function to estimate Claude tokens (approximation)
-function estimateClaudeTokens(text) {
-    const words = text.split(/\s+/).length;
-    return Math.round(words * 1.3);
-}
+
 
 // Express-style API handler for Next.js
 export async function POST(req) {

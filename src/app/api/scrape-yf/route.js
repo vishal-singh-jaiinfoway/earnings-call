@@ -1,6 +1,9 @@
 // ✅ Import Required Libraries
 import puppeteer from "puppeteer";
 const cheerio = require("cheerio");
+import fs from "fs/promises";
+import path from "path";
+import { existsSync } from "fs";
 
 // 🎯 Scrape Yahoo Finance Financials
 async function scrapeFinancialReports(ticker) {
@@ -13,6 +16,7 @@ async function scrapeFinancialReports(ticker) {
  // 🚀 Launch Puppeteer browser
 const browser = await puppeteer.launch({
     headless: "new",
+  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', 
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -137,9 +141,10 @@ async function extractReportData(page, url) {
 
 // 📄 API Route Handler
 export async function GET(req) {
-  // ✅ Extract Ticker from Query Params
+  // ✅ Extract Ticker and Query Params
   const { searchParams } = new URL(req.url);
   const ticker = searchParams.get("ticker");
+  const forceScrape = searchParams.get("forceScrape") === "true"; // default is false
 
   // ❗️ Validate Input
   if (!ticker || ticker.length < 1) {
@@ -149,19 +154,36 @@ export async function GET(req) {
     );
   }
 
-  try {
-    console.log(`🔍 Scraping financial reports for: ${ticker.toUpperCase()}`);
-    const financialReports = await scrapeFinancialReports(ticker.toUpperCase());
+  const upperTicker = ticker.toUpperCase();
+  const reportPath = path.resolve(`public/reports/${upperTicker}.json`);
 
-    // ✅ Send Response
-    return Response.json(
-      {
+  try {
+    // 🔍 Check for Existing File if not forced
+    if (!forceScrape && existsSync(reportPath)) {
+      console.log(`📂 Found cached report for ${upperTicker}. Returning saved data.`);
+      const cachedData = await fs.readFile(reportPath, "utf-8");
+      return Response.json({
         success: true,
-        ticker: ticker.toUpperCase(),
-        data: financialReports,
-      },
-      { status: 200 }
-    );
+        ticker: upperTicker,
+        cached: true,
+        data: JSON.parse(cachedData),
+      });
+    }
+
+    // 🚀 Scrape Data if not found or forceScrape=true
+    console.log(`🔄 Scraping financial reports for: ${upperTicker}`);
+    const financialReports = await scrapeFinancialReports(upperTicker);
+
+    // 💾 Save Scraped Data
+    await fs.mkdir(path.dirname(reportPath), { recursive: true });
+    await fs.writeFile(reportPath, JSON.stringify(financialReports, null, 2), "utf-8");
+
+    return Response.json({
+      success: true,
+      ticker: upperTicker,
+      cached: false,
+      data: financialReports,
+    });
   } catch (error) {
     console.error("❌ Error:", error.message);
     return Response.json(
@@ -170,3 +192,4 @@ export async function GET(req) {
     );
   }
 }
+

@@ -88,68 +88,312 @@ const quarters = ["1st", "2nd", "3rd", "4th"];
 
 
 const companies = [
-  { name: "SoFi Technologies Inc.", ticker: "SOFI" },
-  { name: "Morgan Stanley", ticker: "MS" },
-  { name: "JPMorgan Chase & Co", ticker: "JPM" },
-  { name: "Microsoft Corp", ticker: "MSFT" },
-  { name: "Ameris Bancorp", ticker: "ABCB" },
-  { name: "Associated Banc-Corp", ticker: "ASB" },
-  { name: "Atlantic Union Bankshares Corporation", ticker: "AUB" },
-  { name: "Banc of California, Inc.", ticker: "BANC" },
-  { name: "Bank of America Corporation", ticker: "BAC" },
-  { name: "Bank of Hawaii Corporation", ticker: "BOH" },
-  { name: "Bank OZK", ticker: "OZK" },
-  { name: "BankUnited, Inc.", ticker: "BKU" },
-  { name: "BOK Financial Corporation", ticker: "BOKF" },
-  { name: "Cadence Bank", ticker: "CADE" },
-  { name: "Cathay General Bancorp", ticker: "CATY" },
-  { name: "Citigroup Inc.", ticker: "C" },
-  { name: "Citizens Financial Group, Inc.", ticker: "CFG" },
-  { name: "Columbia Banking System, Inc.", ticker: "COLB" },
-  { name: "Comerica Incorporated", ticker: "CMA" },
-  { name: "Commerce Bancshares, Inc.", ticker: "CBSH" },
-  { name: "Cullen/Frost Bankers, Inc.", ticker: "CFR" },
-  { name: "Customers Bancorp, Inc.", ticker: "CUBI" },
-  { name: "East West Bancorp, Inc.", ticker: "EWBC" },
-  { name: "Eastern Bankshares, Inc.", ticker: "EBC" },
-  { name: "F.N.B. Corporation", ticker: "FNB" },
-  { name: "Fifth Third Bancorp", ticker: "FITB" },
-  { name: "First Citizens BancShares, Inc.", ticker: "FCNC.A" },
-  { name: "First Hawaiian, Inc.", ticker: "FHB" },
-  { name: "First Horizon Corporation", ticker: "FHN" },
-  { name: "First Interstate BancSystem, Inc.", ticker: "FIBK" },
-  { name: "Flagstar Financial, Inc.", ticker: "FLG" },
-  { name: "Fulton Financial Corporation", ticker: "FULT" },
-  { name: "Glacier Bancorp, Inc.", ticker: "GBCI" },
-  { name: "Hancock Whitney Corporation", ticker: "HWC" },
-  { name: "Home Bancshares, Inc.", ticker: "HOMB" },
-  { name: "Huntington Bancshares Incorporated", ticker: "HBAN" },
-  { name: "KeyCorp", ticker: "KEY" },
-  { name: "M&T Bank Corporation", ticker: "MTB" },
-  { name: "Old National Bancorp", ticker: "ONB" },
-  { name: "Pinnacle Financial Partners, Inc.", ticker: "PNFP" },
-  { name: "Popular, Inc.", ticker: "BPOP" },
-  { name: "Prosperity Bancshares, Inc.", ticker: "PB" },
-  { name: "Provident Financial Services, Inc.", ticker: "PFS" },
-  { name: "Regions Financial Corporation", ticker: "RF" },
-  { name: "Simmons First National Corporation", ticker: "SFNC" },
-  { name: "SouthState Corporation", ticker: "SSB" },
-  { name: "Synovus Financial Corp.", ticker: "SNV" },
-  { name: "Texas Capital Bancshares, Inc.", ticker: "TCBI" },
-  { name: "The PNC Financial Services Group, Inc.", ticker: "PNC" },
-  { name: "Truist Financial Corporation", ticker: "TFC" },
-  { name: "U.S. Bancorp", ticker: "USB" },
-  { name: "UMB Financial Corporation", ticker: "UMBF" },
-  { name: "United Bankshares, Inc.", ticker: "UBSI" },
-  { name: "United Community Banks, Inc.", ticker: "UCB" },
-  { name: "Valley National Bancorp", ticker: "VLY" },
-  { name: "Webster Financial Corporation", ticker: "WBS" },
-  { name: "Wells Fargo & Company", ticker: "WFC" },
-  { name: "Western Alliance Bancorporation", ticker: "WAL" },
-  { name: "Wintrust Financial Corporation", ticker: "WTFC" },
-  { name: "WSFS Financial Corporation", ticker: "WSFS" },
-  { name: "Zions Bancorporation, National Association", ticker: "ZION" },
-];
+  {
+    "name": "SoFi Technologies Inc.",
+    "ticker": "SOFI",
+    "logo": "https://logo.clearbit.com/sofi.com"
+  },
+  {
+    "name": "Morgan Stanley",
+    "ticker": "MS",
+    "logo": "https://logo.clearbit.com/morganstanley.com"
+  },
+  {
+    "name": "JPMorgan Chase & Co",
+    "ticker": "JPM",
+    "logo": "https://logo.clearbit.com/jpmorganchase.com"
+  },
+  {
+    "name": "Microsoft Corp",
+    "ticker": "MSFT",
+    "logo": "https://logo.clearbit.com/microsoft.com"
+  },
+  {
+    "name": "Ameris Bancorp",
+    "ticker": "ABCB",
+    "logo": "https://logo.clearbit.com/amerisbank.com"
+  },
+  {
+    "name": "Associated Banc-Corp",
+    "ticker": "ASB",
+    "logo": "https://logo.clearbit.com/associatedbank.com"
+  },
+  {
+    "name": "Atlantic Union Bankshares Corporation",
+    "ticker": "AUB",
+    "logo": "https://logo.clearbit.com/atlanticunionbank.com"
+  },
+  {
+    "name": "Banc of California, Inc.",
+    "ticker": "BANC",
+    "logo": "https://logo.clearbit.com/bancofcal.com"
+  },
+  {
+    "name": "Bank of America Corporation",
+    "ticker": "BAC",
+    "logo": "https://logo.clearbit.com/bankofamerica.com"
+  },
+  {
+    "name": "Bank of Hawaii Corporation",
+    "ticker": "BOH",
+    "logo": "https://logo.clearbit.com/boh.com"
+  },
+  {
+    "name": "Bank OZK",
+    "ticker": "OZK",
+    "logo": "https://logo.clearbit.com/ozk.com"
+  },
+  {
+    "name": "BankUnited, Inc.",
+    "ticker": "BKU",
+    "logo": "https://logo.clearbit.com/bankunited.com"
+  },
+  {
+    "name": "BOK Financial Corporation",
+    "ticker": "BOKF",
+    "logo": "https://logo.clearbit.com/bokf.com"
+  },
+  {
+    "name": "Cadence Bank",
+    "ticker": "CADE",
+    "logo": "https://logo.clearbit.com/cadencebank.com"
+  },
+  {
+    "name": "Cathay General Bancorp",
+    "ticker": "CATY",
+    "logo": "https://logo.clearbit.com/cathaybank.com"
+  },
+  {
+    "name": "Citigroup Inc.",
+    "ticker": "C",
+    "logo": "https://logo.clearbit.com/citigroup.com"
+  },
+  {
+    "name": "Citizens Financial Group, Inc.",
+    "ticker": "CFG",
+    "logo": "https://logo.clearbit.com/citizensbank.com"
+  },
+  {
+    "name": "Columbia Banking System, Inc.",
+    "ticker": "COLB",
+    "logo": "https://logo.clearbit.com/columbiabank.com"
+  },
+  {
+    "name": "Comerica Incorporated",
+    "ticker": "CMA",
+    "logo": "https://logo.clearbit.com/comerica.com"
+  },
+  {
+    "name": "Commerce Bancshares, Inc.",
+    "ticker": "CBSH",
+    "logo": "https://logo.clearbit.com/commercebank.com"
+  },
+  {
+    "name": "Cullen/Frost Bankers, Inc.",
+    "ticker": "CFR",
+    "logo": "https://logo.clearbit.com/frostbank.com"
+  },
+  {
+    "name": "Customers Bancorp, Inc.",
+    "ticker": "CUBI",
+    "logo": "https://logo.clearbit.com/customersbank.com"
+  },
+  {
+    "name": "East West Bancorp, Inc.",
+    "ticker": "EWBC",
+    "logo": "https://logo.clearbit.com/eastwestbank.com"
+  },
+  {
+    "name": "Eastern Bankshares, Inc.",
+    "ticker": "EBC",
+    "logo": "https://logo.clearbit.com/easternbank.com"
+  },
+  {
+    "name": "F.N.B. Corporation",
+    "ticker": "FNB",
+    "logo": "https://logo.clearbit.com/fnb-online.com"
+  },
+  {
+    "name": "Fifth Third Bancorp",
+    "ticker": "FITB",
+    "logo": "https://logo.clearbit.com/53.com"
+  },
+  {
+    "name": "First Citizens BancShares, Inc.",
+    "ticker": "FCNC.A",
+    "logo": "https://logo.clearbit.com/firstcitizens.com"
+  },
+  {
+    "name": "First Hawaiian, Inc.",
+    "ticker": "FHB",
+    "logo": "https://logo.clearbit.com/fhb.com"
+  },
+  {
+    "name": "First Horizon Corporation",
+    "ticker": "FHN",
+    "logo": "https://logo.clearbit.com/firsthorizon.com"
+  },
+  {
+    "name": "First Interstate BancSystem, Inc.",
+    "ticker": "FIBK",
+    "logo": "https://logo.clearbit.com/firstinterstatebank.com"
+  },
+  {
+    "name": "Flagstar Financial, Inc.",
+    "ticker": "FLG",
+    "logo": "https://logo.clearbit.com/flagstar.com"
+  },
+  {
+    "name": "Fulton Financial Corporation",
+    "ticker": "FULT",
+    "logo": "https://logo.clearbit.com/fultonbank.com"
+  },
+  {
+    "name": "Glacier Bancorp, Inc.",
+    "ticker": "GBCI",
+    "logo": "https://logo.clearbit.com/glacierbank.com"
+  },
+  {
+    "name": "Hancock Whitney Corporation",
+    "ticker": "HWC",
+    "logo": "https://logo.clearbit.com/hancockwhitney.com"
+  },
+  {
+    "name": "Home Bancshares, Inc.",
+    "ticker": "HOMB",
+    "logo": "https://logo.clearbit.com/homebancshares.com"
+  },
+  {
+    "name": "Huntington Bancshares Incorporated",
+    "ticker": "HBAN",
+    "logo": "https://logo.clearbit.com/huntington.com"
+  },
+  {
+    "name": "KeyCorp",
+    "ticker": "KEY",
+    "logo": "https://logo.clearbit.com/key.com"
+  },
+  {
+    "name": "M&T Bank Corporation",
+    "ticker": "MTB",
+    "logo": "https://logo.clearbit.com/mtb.com"
+  },
+  {
+    "name": "Old National Bancorp",
+    "ticker": "ONB",
+    "logo": "https://logo.clearbit.com/oldnational.com"
+  },
+  {
+    "name": "Pinnacle Financial Partners, Inc.",
+    "ticker": "PNFP",
+    "logo": "https://logo.clearbit.com/pnfp.com"
+  },
+  {
+    "name": "Popular, Inc.",
+    "ticker": "BPOP",
+    "logo": "https://logo.clearbit.com/popular.com"
+  },
+  {
+    "name": "Prosperity Bancshares, Inc.",
+    "ticker": "PB",
+    "logo": "https://logo.clearbit.com/prosperitybankusa.com"
+  },
+  {
+    "name": "Provident Financial Services, Inc.",
+    "ticker": "PFS",
+    "logo": "https://logo.clearbit.com/provident.bank"
+  },
+  {
+    "name": "Regions Financial Corporation",
+    "ticker": "RF",
+    "logo": "https://logo.clearbit.com/regions.com"
+  },
+  {
+    "name": "Simmons First National Corporation",
+    "ticker": "SFNC",
+    "logo": "https://logo.clearbit.com/simmonsbank.com"
+  },
+  {
+    "name": "SouthState Corporation",
+    "ticker": "SSB",
+    "logo": "https://logo.clearbit.com/southstatebank.com"
+  },
+  {
+    "name": "Synovus Financial Corp.",
+    "ticker": "SNV",
+    "logo": "https://logo.clearbit.com/synovus.com"
+  },
+  {
+    "name": "Texas Capital Bancshares, Inc.",
+    "ticker": "TCBI",
+    "logo": "https://logo.clearbit.com/texascapitalbank.com"
+  },
+  {
+    "name": "The PNC Financial Services Group, Inc.",
+    "ticker": "PNC",
+    "logo": "https://logo.clearbit.com/pnc.com"
+  },
+  {
+    "name": "Truist Financial Corporation",
+    "ticker": "TFC",
+    "logo": "https://logo.clearbit.com/truist.com"
+  },
+  {
+    "name": "U.S. Bancorp",
+    "ticker": "USB",
+    "logo": "https://logo.clearbit.com/usbank.com"
+  },
+  {
+    "name": "UMB Financial Corporation",
+    "ticker": "UMBF",
+    "logo": "https://logo.clearbit.com/umb.com"
+  },
+  {
+    "name": "United Bankshares, Inc.",
+    "ticker": "UBSI",
+    "logo": "https://logo.clearbit.com/ubsi-inc.com"
+  },
+  {
+    "name": "United Community Banks, Inc.",
+    "ticker": "UCB",
+    "logo": "https://logo.clearbit.com/ucbi.com"
+  },
+  {
+    "name": "Valley National Bancorp",
+    "ticker": "VLY",
+    "logo": "https://logo.clearbit.com/valley.com"
+  },
+  {
+    "name": "Webster Financial Corporation",
+    "ticker": "WBS",
+    "logo": "https://logo.clearbit.com/websteronline.com"
+  },
+  {
+    "name": "Wells Fargo & Company",
+    "ticker": "WFC",
+    "logo": "https://logo.clearbit.com/wellsfargo.com"
+  },
+  {
+    "name": "Western Alliance Bancorporation",
+    "ticker": "WAL",
+    "logo": "https://logo.clearbit.com/westernalliancebancorporation.com"
+  },
+  {
+    "name": "Wintrust Financial Corporation",
+    "ticker": "WTFC",
+    "logo": "https://logo.clearbit.com/wintrust.com"
+  },
+  {
+    "name": "WSFS Financial Corporation",
+    "ticker": "WSFS",
+    "logo": "https://logo.clearbit.com/wsfsbank.com"
+  },
+  {
+    "name": "Zions Bancorporation, National Association",
+    "ticker": "ZION",
+    "logo": "https://logo.clearbit.com/zionsbank.com"
+  }
+]
 
 const companyLogos = {
   SOFI: "https://logo.clearbit.com/sofi.com",

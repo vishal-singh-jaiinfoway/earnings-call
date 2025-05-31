@@ -62,82 +62,93 @@ const browser = await puppeteer.launch({
   }
 }
 
-// 📊 Extract Report Data from Yahoo Finance
 async function extractReportData(page, url) {
   console.log(`🔍 Extracting data from: ${url}`);
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90000 });
 
-  // ✅ Expand All Rows with a Single Button Click
-  const expandButton = await page.$("button.link2-btn");
-  if (expandButton) {
-    console.log("⏳ Expanding all rows...");
-    await expandButton.click();
+  async function extractTableData(contextLabel) {
+    // ✅ Expand All Rows
+    const expandButton = await page.$("button.link2-btn");
+    if (expandButton) {
+      console.log(`⏳ Expanding all rows for ${contextLabel}...`);
+      await expandButton.click();
     await new Promise((resolve) => setTimeout(resolve, 5000)); // Allow time for expansion
-    console.log("✅ All rows expanded successfully.");
-  } else {
-    console.warn("⚠️ Expand-all button not found. Continuing without expansion.");
+      console.log(`✅ All rows expanded for ${contextLabel}.`);
+    } else {
+      console.warn(`⚠️ Expand-all button not found for ${contextLabel}. Continuing...`);
+    }
+
+    // ✅ Wait for rows to appear
+    await page.waitForSelector(".row.lv-0, .row.lv-1, .row.lv-2", { timeout: 60000 });
+
+    const html = await page.content();
+    const $ = cheerio.load(html);
+
+    const headers = [];
+    $(".tableHeader .row .column").each((index, element) => {
+      headers.push($(element).text().trim());
+    });
+
+    const rows = [];
+    $(".tableBody .row").each((index, element) => {
+      const rowTitle = $(element).find(".rowTitle").text().trim();
+      const rowLevel = $(element).attr("class").match(/lv-(\d+)/)?.[1] || "0";
+
+      if (!rowTitle) return;
+
+      const rowValues = [];
+      $(element)
+        .find(".column")
+        .each((i, el) => {
+          if (i > 0) {
+            rowValues.push($(el).text().trim().replace(/,/g, ""));
+          }
+        });
+
+      if (rowValues.length > 0) {
+        rows.push({
+          metric: rowLevel === "0" ? rowTitle.trim() : `${"  ".repeat(rowLevel)}${rowTitle}`.trim(),
+          values: rowValues,
+        });
+      }
+    });
+
+    return { headers, rows };
   }
 
-  // ✅ **Wait for Rows to Load after Expansion**
-  await page.waitForSelector(".row.lv-0, .row.lv-1, .row.lv-2", { timeout: 60000 });
+  // 📌 Extract Annual Data (default)
+  const annualData = await extractTableData("Annual");
+  // 🔄 Switch to Quarterly
+  const quarterlyTab = await page.$("#tab-quarterly");
 
-  // 📄 Get page content after rows expand
-  const html = await page.content();
+  if (quarterlyTab) {
+    console.log("🔄 Switching to Quarterly data...");
+    await quarterlyTab.click();
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Allow time for expansion
 
-  // 🎯 Load HTML into cheerio
-  const $ = cheerio.load(html);
+    // Ensure table is loaded again
+    await page.waitForSelector(".tableBody .row", { timeout: 60000 });
 
-  // ✅ Extract Column Headers
-  const headers = [];
-  $(".tableHeader .row .column").each((index, element) => {
-    headers.push($(element).text().trim());
-  });
+    // 📌 Extract Quarterly Data
+    const quarterlyData = await extractTableData("Quarterly");
 
-  // ✅ Extract Parent and Nested Rows Data
-  const rows = [];
-  $(".tableBody .row").each((index, element) => {
-    // 🎯 Extract the row title
-    const rowTitle = $(element).find(".rowTitle").text().trim();
-    const rowLevel = $(element).attr("class").match(/lv-(\d+)/)?.[1] || "0";
+    const reportData = {
+      annual: annualData,
+      quarterly: quarterlyData,
+    };
 
-    // ✅ Skip empty rows
-    if (!rowTitle) {
-      return;
-    }
+    console.log(
+      `✅ Extracted Annual & Quarterly Data for ${url.split("/")[5]}:`,
+      JSON.stringify(reportData, null, 2)
+    );
 
-    // ✅ Extract Row Values
-    const rowValues = [];
-    $(element)
-      .find(".column")
-      .each((i, el) => {
-        if (i > 0) {
-          rowValues.push($(el).text().trim().replace(/,/g, ""));
-        }
-      });
-
-    // ✅ Push Parent/Child Row with Level Information
-    if (rowValues.length > 0) {
-      rows.push({
-        metric: rowLevel === "0" ? rowTitle : `${"  ".repeat(rowLevel)}${rowTitle}`,
-        //level: parseInt(rowLevel, 10),
-        values: rowValues,
-      });
-    }
-  });
-
-  // 📊 Create JSON Data
-  const reportData = {
-    headers,
-    rows,
-  };
-
-  console.log(
-    `✅ Extracted Data for ${url.split("/")[5]}:`,
-    JSON.stringify(reportData, null, 2)
-  );
-
-  return reportData;
+    return reportData;
+  } else {
+    console.warn("⚠️ Quarterly tab not found. Returning only annual data.");
+    return { annual: annualData };
+  }
 }
+
 
 // 📄 API Route Handler
 export async function GET(req) {

@@ -25,7 +25,7 @@ Given the following financial data:
 ${JSON.stringify(companyData, null, 2)}
 
 Generate ONLY a JSON object with this structure:
-
+\`\`\`\json
 {
   "chartType": "bar" | "line" | "pie" | "doughnut",
   "data": {
@@ -35,6 +35,7 @@ Generate ONLY a JSON object with this structure:
   "options": { ... },
   "analysis": "string"
 }
+\`\`\`
 
 Graph type to generate: "${graphType}".
 

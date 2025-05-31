@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Tabs,
   Tab,
@@ -18,7 +18,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { companies } from "../../../public/data";
+import { useSelector } from "react-redux";
 
 // ✅ Report Types
 const reportTypes = [
@@ -26,11 +26,23 @@ const reportTypes = [
   { name: "Quarterly", value: "quarterly" },
 ];
 
-export default function Home() {
+export default function FinancialReports() {
   const [symbol, setSymbol] = useState("");
   const [reportType, setReportType] = useState("annual"); // ✅ Default to Annual
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const selectedCompanies = useSelector(
+    (state) => state.sidebar.selectedCompanies,
+  );
+  // const selectedYear = useSelector((state) => state.sidebar.selectedYear);
+  // const selectedQuarter = useSelector((state) => state.sidebar.selectedQuarter);
+
+  useEffect(() => {
+    console.log("Selected Compnanies :", selectedCompanies);
+    if (selectedCompanies?.length) {
+      setSymbol(selectedCompanies[0]);
+    }
+  }, [selectedCompanies?.length]);
 
   // 🔍 Fetch Data from API
   const fetchData = async () => {
@@ -54,25 +66,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-700 to-pink-600 p-8">
-      <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-gray-200">
-        {/* 📚 Company Dropdown */}
-        <FormControl fullWidth sx={{ mb: 4 }}>
-          <InputLabel>Select a Company</InputLabel>
-          <Select
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            displayEmpty
-            sx={{ backgroundColor: "#fff", borderRadius: 2 }}
-          >
-            {companies.map((company) => (
-              <MenuItem key={company.ticker} value={company.ticker}>
-                {company.name} ({company.ticker})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-purple-100 to-purple-100 p-8">
+      <div className="max-w-xl mx-auto bg-white/80 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-gray-200">
         {/* 📊 Report Type Dropdown */}
         <FormControl fullWidth sx={{ mb: 4 }}>
           <InputLabel>Select Report Type</InputLabel>
@@ -93,7 +88,7 @@ export default function Home() {
         <button
           onClick={fetchData}
           disabled={loading}
-          className={`w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white p-3 rounded-lg ${
+          className={`w-full bg-purple-600 text-white p-3 rounded-lg ${
             loading ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
           } transition-all duration-300`}
         >
@@ -157,12 +152,11 @@ const FinancialDataDisplay = ({ financialData }) => {
         <Typography
           variant="h6"
           sx={{
-            color: "white",
-            fontWeight: "bold",
+            color: "grey",
             fontSize: "1.2rem",
           }}
         >
-          ❌ No financial data available. Please select a company.
+          No financial data available. Please select a company.
         </Typography>
       </div>
     );

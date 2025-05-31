@@ -19,6 +19,7 @@ import { ParentContext } from "@/layout";
 interface Company {
   ticker: string;
   name: string;
+  logo: string;
 }
 
 interface OptionType {
@@ -130,6 +131,7 @@ const FilterOptions = () => {
   const companyOptions: OptionType[] = companies.map((company: Company) => ({
     value: company.ticker,
     label: company.name,
+    logo: company.logo
   }));
 
   const personaOptions: OptionType[] = personas.map((persona) => ({
@@ -175,7 +177,7 @@ const FilterOptions = () => {
         <label className="text-sm font-medium text-gray-800 block mb-2">
           Company
         </label>
-        <Select 
+        <Select
           options={companyOptions}
           isMulti={["/insights", "/competitive-insights"].includes(pathname)}
           value={companyOptions.filter((option) =>
@@ -184,6 +186,18 @@ const FilterOptions = () => {
           onChange={handleCompanySelect}
           placeholder="Select companies (max 5)"
           styles={customStyles}
+          formatOptionLabel={(option: OptionType) => (
+            <div className="flex items-center">
+              {option.logo && (
+                <img
+                  src={option.logo}
+                  alt={option.label}
+                  className="w-6 h-6 mr-2 rounded-full"
+                />
+              )}
+              <span>{option.label}</span>
+            </div>
+          )}
         />
       </div>
 

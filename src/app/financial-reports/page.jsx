@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Tabs,
   Tab,
@@ -18,20 +18,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-
-// ✅ Company Data for Dropdown
-const companies = [
-  { name: "SoFi Technologies Inc.", ticker: "SOFI" },
-  { name: "Morgan Stanley", ticker: "MS" },
-  { name: "JPMorgan Chase & Co", ticker: "JPM" },
-  { name: "Microsoft Corp", ticker: "MSFT" },
-  { name: "Ameris Bancorp", ticker: "ABCB" },
-  { name: "Bank of America Corporation", ticker: "BAC" },
-  { name: "Citigroup Inc.", ticker: "C" },
-  { name: "Wells Fargo & Company", ticker: "WFC" },
-  { name: "U.S. Bancorp", ticker: "USB" },
-  { name: "KeyCorp", ticker: "KEY" },
-];
+import { useSelector } from "react-redux";
 
 // ✅ Report Types
 const reportTypes = [
@@ -44,6 +31,17 @@ export default function Home() {
   const [reportType, setReportType] = useState("annual"); // ✅ Default to Annual
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const selectedCompanies = useSelector(
+    (state) => state.sidebar.selectedCompanies,
+  );
+  // const selectedYear = useSelector((state) => state.sidebar.selectedYear);
+  // const selectedQuarter = useSelector((state) => state.sidebar.selectedQuarter);
+
+  useEffect(() => {
+    if (selectedCompanies?.length) {
+      setSymbol(selectedCompanies[0].ticker);
+    }
+  }, [selectedCompanies]);
 
   // 🔍 Fetch Data from API
   const fetchData = async () => {
@@ -67,28 +65,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-gradient-to-br from-purple-900 via-purple-700 to-pink-600 p-8">
+    <div className="min-h-screen w-screen bg-gradient-to-br from-purple-100 via-purple-700 to-pink-600 p-8">
       <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-gray-200">
-        {/* 📚 Company Dropdown */}
-        <FormControl fullWidth sx={{ mb: 4 }}>
-          <InputLabel>Select a Company</InputLabel>
-          <Select
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            displayEmpty
-            sx={{ backgroundColor: "#fff", borderRadius: 2 }}
-          >
-            {companies.map((company) => (
-              <MenuItem key={company.ticker} value={company.ticker}>
-                {company.name} ({company.ticker})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
         {/* 📊 Report Type Dropdown */}
         <FormControl fullWidth sx={{ mb: 4 }}>
-          <InputLabel>Select Report Type</InputLabel>
+          {/* <InputLabel>Select Report Type</InputLabel> */}
           <Select
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
@@ -119,8 +100,6 @@ export default function Home() {
     </div>
   );
 }
-
-
 
 // 🎯 Updated Grouping Logic
 const groupReportsByType = (data) => {
@@ -308,7 +287,7 @@ const FinancialDataDisplay = ({ financialData }) => {
               }}
             >
               {Object.keys(
-                groupedData[years[selectedYear]].quarterly || {}
+                groupedData[years[selectedYear]].quarterly || {},
               ).map((quarter, index) => (
                 <Tab
                   key={index}
@@ -332,15 +311,14 @@ const FinancialDataDisplay = ({ financialData }) => {
                 (quarter, index) =>
                   selectedQuarter === index &&
                   groupedData[years[selectedYear]].quarterly[quarter].map(
-                    (report, i) => <ReportTable key={i} report={report} />
-                  )
+                    (report, i) => <ReportTable key={i} report={report} />,
+                  ),
               )}
           </Box>
         )}
     </Box>
   );
 };
-
 
 // 📄 Updated Report Table Component
 const ReportTable = ({ report }) => (
@@ -465,8 +443,3 @@ const ReportTable = ({ report }) => (
     )}
   </Box>
 );
-
-
-
-  
-  

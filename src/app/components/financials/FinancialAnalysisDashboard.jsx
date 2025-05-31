@@ -13,8 +13,6 @@ import {
   LineElement,
   ArcElement,
 } from "chart.js";
-import { companies } from "../../../../public/data";
-import MultiSelectDropdown from "@/components/ui/MultiSelectDropdown";
 import {
   Select,
   SelectContent,
@@ -22,6 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSelector } from "react-redux";
+import {
+  calculateFinancialMetricsFromRaw,
+  generateChartJsFromTrendData,
+} from "@/lib/utils";
 
 ChartJS.register(
   CategoryScale,
@@ -35,27 +38,68 @@ ChartJS.register(
   ArcElement,
 );
 
-const graphTypes = [
-  "Revenue Trend",
-  "Net Income Comparison",
-  "Asset Composition",
-  "Debt-to-Equity Ratio",
-  "Loan Portfolio Growth",
-  "Interest Income vs Expense",
-  "Operating Cash Flow",
-  "EPS Comparison",
-  "Efficiency Ratio",
-  "Deposit Growth",
-];
+// Define required statements for each graph type
+const graphRequirements = {
+  "Revenue Trend": {
+    statements: ["incomeStatement"],
+    metrics: ["Total Revenue"],
+  },
+  "Net Income Comparison": {
+    statements: ["incomeStatement"],
+    metrics: ["Net Income Common Stockholders"],
+  },
+  "Asset Composition": {
+    statements: ["balanceSheet"],
+    metrics: [
+      "Cash, Cash Equivalents & Federal Funds Sold",
+      "Net Loan",
+      "Securities and Investments",
+      "Net PPE",
+    ],
+  },
+  "Debt-to-Equity Ratio": {
+    statements: ["balanceSheet"],
+    metrics: ["Total Debt", "Total Equity Gross Minority Interest"],
+  },
+  "Loan Portfolio Growth": {
+    statements: ["balanceSheet"],
+    metrics: ["Gross Loan"],
+  },
+  "Interest Income vs Expense": {
+    statements: ["incomeStatement"],
+    metrics: ["Interest Income", "Interest Expense"],
+  },
+  "Operating Cash Flow": {
+    statements: ["cashFlow"],
+    metrics: ["Operating Cash Flow"],
+  },
+  "EPS Comparison": {
+    statements: ["incomeStatement"],
+    metrics: ["Basic EPS", "Diluted EPS"],
+  },
+  "Efficiency Ratio": {
+    statements: ["incomeStatement"],
+    metrics: ["Non Interest Expense", "Total Revenue"],
+  },
+  "Deposit Growth": {
+    statements: ["balanceSheet"],
+    metrics: ["Total Deposits"],
+  },
+};
 
 const FinancialAnalysisDashboard = () => {
-  const [selectedCompanies, setSelectedCompanies] = useState([]);
   const [selectedGraph, setSelectedGraph] = useState("");
   const [graphPrompt, setGraphPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [graphData, setGraphData] = useState(null);
   const [companyData, setCompanyData] = useState({});
-  const [userNotes, setUserNotes] = useState("");
+  const [periodType, setPeriodType] = useState("annual"); // New state for report type
+
+  const selectedCompanies = useSelector(
+    (state) => state.sidebar.selectedCompanies,
+  );
+  const selectedYear = useSelector((state) => state.sidebar.selectedYear);
+  const selectedQuarter = useSelector((state) => state.sidebar.selectedQuarter);
 
   // Load data for selected companies
   useEffect(() => {
@@ -78,16 +122,43 @@ const FinancialAnalysisDashboard = () => {
   const fetchCompanyData = async (ticker) => {
     try {
       const response = await fetch(`/api/scrape-yf?ticker=${ticker}`);
-
       if (!response.ok) throw new Error("Failed to fetch data");
-
-      const data = await response.json();
-
-      return data.data;
+      return await response.json();
     } catch (error) {
       console.error("Error:", error);
-    } finally {
+      return null;
     }
+  };
+
+  // Extract only the required data for the selected graph type
+  const prepareCompanyDataForGraph = (ticker) => {
+    if (!selectedGraph || !companyData[ticker] || !companyData[ticker].data) {
+      return null;
+    }
+
+    const requirements = graphRequirements[selectedGraph];
+    const preparedData = {};
+
+    requirements.statements.forEach((statementType) => {
+      if (companyData[ticker].data[statementType]?.[periodType]) {
+        preparedData[statementType] = {
+          [periodType]: {
+            // Keep the same structure expected by calculateFinancialMetricsFromRaw
+            headers:
+              companyData[ticker].data[statementType][periodType].headers,
+            rows: companyData[ticker].data[statementType][
+              periodType
+            ].rows.filter((row) =>
+              requirements.metrics.some((metric) =>
+                row.metric.includes(metric),
+              ),
+            ),
+          },
+        };
+      }
+    });
+
+    return preparedData;
   };
 
   const generateGraph = async () => {
@@ -95,50 +166,48 @@ const FinancialAnalysisDashboard = () => {
 
     setIsLoading(true);
 
-    // Prepare data only for selected companies
-    const filteredCompanyData = {};
-    for (const ticker of selectedCompanies) {
-      if (companyData[ticker]) {
-        filteredCompanyData[ticker] = companyData[ticker];
-      }
-    }
-
     try {
-      const response = await fetch("/api/generate-chart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          companies: selectedCompanies,
-          graphType: selectedGraph,
-          prompt: graphPrompt,
-          companyData: filteredCompanyData,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate chart");
+      // Prepare filtered data for each company
+      const filteredCompanyData = {};
+      for (const ticker of selectedCompanies) {
+        const preparedData = prepareCompanyDataForGraph(ticker);
+        if (preparedData) {
+          filteredCompanyData[ticker] = preparedData;
+        }
       }
 
-      const result = await response.json();
-      setGraphData(result);
+      //   const response = await fetch("/api/generate-chart", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify({
+      //       companies: selectedCompanies,
+      //       graphType: selectedGraph,
+      //       prompt: graphPrompt,
+      //       companyData: filteredCompanyData,
+      //     }),
+      //   });
+
+      //   if (!response.ok) throw new Error("Failed to generate chart");
+      //   const result = await response.json();
+      //   setGraphData(result);
+      console.log("filteredCompanyData", filteredCompanyData);
+
+      const result = calculateFinancialMetricsFromRaw(
+        filteredCompanyData,
+        periodType,
+      );
+      console.log("result", result);
+      const chartData = generateChartJsFromTrendData(result);
+      console.log("chartData", chartData);
+
+      setGraphData(chartData);
     } catch (error) {
       console.error("Error generating graph:", error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleCompanySelect = (e) => {
-    const options = e.target.options;
-    const selected = [];
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].selected) {
-        selected.push(options[i].value);
-      }
-    }
-    setSelectedCompanies(selected);
   };
 
   const renderGraph = () => {
@@ -161,38 +230,58 @@ const FinancialAnalysisDashboard = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Company Selection */}
-        <div className="bg-white p-4 rounded shadow w-full">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Select Companies
-          </label>
-          <MultiSelectDropdown
-            items={companies}
-            selectedKeys={selectedCompanies}
-            setSelectedKeys={setSelectedCompanies}
-            getKey={(company) => company.ticker}
-            getLabel={(company) => company.name}
-            getImage={(company) => company.logo}
-          />
-        </div>
         {/* Graph Selection */}
-        <div className="bg-white p-4 rounded shadow w-full">
-          <h2 className="text-lg font-semibold mb-2">Select Graph Type</h2>
-          <Select value={selectedGraph} onValueChange={setSelectedGraph}>
-            <SelectTrigger className="w-full mb-4">
-              <SelectValue placeholder="-- Select a graph type --" />
-            </SelectTrigger>
-            <SelectContent>
-              {graphTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="p-4 rounded w-full">
+          <div className="flex gap-4 mb-4">
+            <label className="text-lg font-semibold mb-2">
+              Select Graph Type
+            </label>
+            <Select value={selectedGraph} onValueChange={setSelectedGraph}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a graph type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(graphRequirements).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex gap-4 mb-4">
+            <label className="text-lg font-semibold mb-2">
+              Select Period Type
+            </label>
+            <Select value={periodType} onValueChange={setPeriodType}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Period Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="annual">Annual</SelectItem>
+                <SelectItem value="quarterly">Quarterly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {selectedGraph && (
             <div className="mt-4">
+              <div className="mb-3 p-3 bg-blue-50 rounded">
+                <h3 className="font-medium text-sm mb-1">Required Data:</h3>
+                <div className="flex flex-wrap gap-1">
+                  {graphRequirements[selectedGraph].statements.map(
+                    (statement) => (
+                      <span
+                        key={statement}
+                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
+                      >
+                        {statement}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </div>
               <label className="block text-sm font-medium mb-1">
                 Customize your graph request:
               </label>
@@ -229,18 +318,6 @@ const FinancialAnalysisDashboard = () => {
             <h3 className="text-lg font-semibold mb-2">LLM Analysis</h3>
             <div className="bg-gray-50 p-4 rounded mb-4">
               <p>{graphData.analysis}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Add your notes:
-              </label>
-              <textarea
-                className="w-full border rounded p-2 h-24"
-                value={userNotes}
-                onChange={(e) => setUserNotes(e.target.value)}
-                placeholder="Add your analysis or observations here..."
-              />
             </div>
           </div>
         </div>

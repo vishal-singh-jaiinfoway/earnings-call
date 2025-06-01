@@ -61,10 +61,12 @@ export default function FinancialReports() {
 
   // Set initial symbol from selected companies
   useEffect(() => {
+    console.log("selectedCompanies", selectedCompanies);
+
     if (selectedCompanies?.length) {
       setSymbol(selectedCompanies[0]);
     }
-  }, [selectedCompanies?.length]);
+  }, [selectedCompanies]);
 
   // Prefetch report whenever symbol or reportType changes
   useEffect(() => {

@@ -26,7 +26,9 @@ import { Expand, ChevronDown, ChevronUp, X } from "lucide-react";
 import ChatBox from "./chatbox";
 import PropTypes from "prop-types";
 import { setFilterConfig } from "../../../../store/sidebarSlice";
-import { quarters,companies,years } from "../../../../public/data";
+import { quarters, companies, years } from "../../../../public/data";
+import ChartContainer from "./ChartContainer";
+import MemoizedChatPanel from "./MemoizedChatPanel";
 
 ChartJS.register(
   CategoryScale,
@@ -192,11 +194,17 @@ const FinancialAnalysisDashboard = ({
     return preparedData;
   };
 
+  // Compute whether all selected companies have data loaded
+  const canGenerateGraph =
+    selectedCompanies.length > 0 &&
+    selectedCompanies.every((ticker) => companyData[ticker]);
+
   const generateGraph = async () => {
+    // Prevent graph generation if company data is not fully loaded
+    if (!canGenerateGraph) return;
     if (!selectedGraph || selectedCompanies.length === 0) return;
 
     setGraphState({ isLoading: true, error: null });
-
     try {
       const filteredCompanyData = {};
       for (const ticker of selectedCompanies) {
@@ -363,12 +371,12 @@ const FinancialAnalysisDashboard = ({
 
                 <button
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    isLoading || selectedCompanies.length === 0
+                    isLoading || !canGenerateGraph
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg"
                   }`}
                   onClick={generateGraph}
-                  disabled={isLoading || selectedCompanies.length === 0}
+                  disabled={isLoading || !canGenerateGraph}
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -392,6 +400,29 @@ const FinancialAnalysisDashboard = ({
                       </svg>
                       Generating...
                     </span>
+                  ) : !canGenerateGraph && selectedCompanies.length ? (
+                    <span className="flex items-center justify-center gap-2">
+                      {/* indicator that company data is still loading */}
+                      <svg
+                        className="animate-spin h-4 w-4 text-current"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Waiting for company data...
+                    </span>
                   ) : (
                     "Generate Graph"
                   )}
@@ -402,7 +433,7 @@ const FinancialAnalysisDashboard = ({
         </div>
 
         {/* Right Side Container */}
-        <div className="space-y-4">
+        <div className="space-y-4 relative z-10 bg-white p-2 rounded-md">
           <div className="mb-6">
             {isLoading ? (
               <div className="h-full flex items-center justify-center">
@@ -437,7 +468,7 @@ const FinancialAnalysisDashboard = ({
                 <div className="relative">
                   {graphData && (
                     <button
-                      className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
+                      className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
                       onClick={() => setGraphState({ isDrawerOpen: true })}
                       aria-label="Expand graph"
                     >
@@ -445,7 +476,8 @@ const FinancialAnalysisDashboard = ({
                     </button>
                   )}
                 </div>
-                {renderChart()}
+                <ChartContainer graphData={graphData} />
+
                 {graphData?.analysis && (
                   <div className="mt-2">
                     <h3 className="text-md font-semibold text-gray-800 mb-3">
@@ -537,30 +569,7 @@ const FinancialAnalysisDashboard = ({
                     <>
                       <div className="mb-4">
                         <ChartErrorBoundary>
-                          {graphData.chartType === "line" && (
-                            <Line
-                              data={graphData.data}
-                              options={graphData.options}
-                            />
-                          )}
-                          {graphData.chartType === "bar" && (
-                            <Bar
-                              data={graphData.data}
-                              options={graphData.options}
-                            />
-                          )}
-                          {graphData.chartType === "pie" && (
-                            <Pie
-                              data={graphData.data}
-                              options={graphData.options}
-                            />
-                          )}
-                          {graphData.chartType === "doughnut" && (
-                            <Doughnut
-                              data={graphData.data}
-                              options={graphData.options}
-                            />
-                          )}
+                          <ChartContainer graphData={graphData} />
                         </ChartErrorBoundary>
                       </div>
                       <div className="mt-2">
@@ -585,21 +594,18 @@ const FinancialAnalysisDashboard = ({
                       Ask questions or request chart modifications
                     </p>
                   </div>
-                  <div className="flex-1 overflow-hidden">
-                    <ChatBox
-                      ref={chatBoxRef}
-                      context={{
-                        graphType: selectedGraph,
-                        graphData: graphData,
-                        companies: selectedCompanies,
-                        periodType: periodType,
-                        companyData: companyData,
-                      }}
-                      chatState={chatState}
-                      setChatState={setChatState}
-                      onChartUpdate={handleChartUpdate}
-                    />
-                  </div>
+                  <MemoizedChatPanel
+                    context={{
+                      graphType: selectedGraph,
+                      graphData: graphData,
+                      companies: selectedCompanies,
+                      periodType: periodType,
+                      companyData: companyData,
+                    }}
+                    chatState={chatState}
+                    setChatState={setChatState}
+                    onChartUpdate={handleChartUpdate}
+                  />
                 </div>
               </div>
             </div>

@@ -96,32 +96,48 @@ const getAnswerForPrompt = async function* (
             return;
         }
 
-        // Check if the source data is missing
+        // Warn if source data is missing
         if (!source || source.trim().length === 0) {
             yield "⚠️ **Note:** No reference data available. Providing a general response:";
         }
 
-        // 🔥 OpenRouter Payload (Using the Same Prompt)
+        // Construct prompt message dynamically
+        const baseInstruction = `
+You are an expert financial assistant responding to a question.
+Use the internal information below to guide your answer, but do not mention or reference any transcripts, context, sources, or formatting.
+
+Audience: ${persona}.
+Respond in clear markdown. If the question cannot be answered with the available information, respond accordingly without guessing.
+`;
+
+        const contextBlock = source && source.trim().length > 0
+            ? `\nRelevant Information:\n${source.trim()}`
+            : '';
+
+        const additionalContextBlock = context && context.trim().length > 0
+            ? `\nAdditional Notes:\n${context.trim()}`
+            : '';
+
+        const finalMessage = `${baseInstruction}${contextBlock}\n\nPrompt:\n${prompt.trim()}${additionalContextBlock}`;
+
         const payload = {
             model: "deepseek/deepseek-chat:free",
             messages: [
                 {
                     role: "user",
-                    content: `You are provided transcript(s) of earnings-calls. Answer the prompt based on the provided context.\n\n\nContext:${source}\n\n\nPrompt:${prompt}\n\n\n.Generate your response for someone who is a ${persona},
-                        and with proper markdown formatting. Consider this additional context as well when generating response.\n
-                        Additional Context:${context}. Do not consider the additional context if it's not meaningful to the current prompt and Context.\n\nNever ever disclose or mention your source of information based on which you are answering the prompt, and that you are providing your response with markdown formatting. If the question is unrelated to the provided context, then do not answer the prompt.`,
+                    content: finalMessage
                 },
             ],
             max_tokens: fmMaxTokens,
             temperature: fmTemperature,
             top_p: 0.999,
-            stream: true, // ✅ Enable Streaming
+            stream: true,
         };
 
-        // ✅ Create OpenRouter Completion Request with Streaming
+        // Create OpenRouter Completion Request with Streaming
         const stream = await openai.chat.completions.create(payload);
 
-        // 🔥 Read and stream response chunks
+        // Read and stream response chunks
         for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content || "";
             if (content) {
@@ -133,6 +149,7 @@ const getAnswerForPrompt = async function* (
         yield "❌ **Error:** Unable to process your request at the moment. Please try again later.";
     }
 };
+
 
 
 // Function to generate response from OpenRouter
@@ -154,10 +171,10 @@ const generateResponse = async (
         console.log("selectedCompanies", selectedCompanies);
         const optimizedPrompt = await optimizePrompt(
             previousPrompts,
-            previousPrompts.length ? rawPrompt : prompt,
+            prompt,
             JSON.stringify(selectedCompanies),
-            selectedQuarter,
-            selectedYear,
+            JSON.stringify(selectedQuarter),
+            JSON.stringify(selectedYear),
             chats
         );
 
@@ -212,13 +229,20 @@ const optimizePrompt = async (
     chats
 ) => {
     try {
+        console.log('optimizePrompt-----------');
+
+        console.log('previousPrompts:', previousPrompts);
+        console.log('rawPrompt:', rawPrompt);
+        console.log('selectedCompanies:', selectedCompanies);
+        console.log('selectedQuarter:', selectedQuarter);
+        console.log('selectedYear:', selectedYear);
+        //console.log('chats:', chats);
         const previousPromptsString = previousPrompts.join("\n\n");
 
         // 📡 OpenRouter Payload for Prompt Optimization
         const payload = {
             model: "mistralai/mistral-small-3.1-24b-instruct:free",
             messages: [
-                ...chats.slice(-5),
                 {
                     role: "user",
                     content: `Based on previous prompts, you need to make the current prompt more clear only if it is not and it is stemming from previous prompt(s) else just return the prompt as it is without modifying it.\n\nPrevious prompts:${previousPromptsString}\n\n\nCurrent prompt:${rawPrompt}.\n\n\nFor example if the current prompt is "just for sofi" and previous prompts is "Who were the analysts?", then you have to make the current prompt more clear by framing it as "Who were the analysts for sofi?". Consider these informations as well Selected Companies: ${selectedCompanies}.\n\nSelected Quarter:${selectedQuarter}\n\nSelected Year:${selectedYear}\n\n\n
@@ -270,6 +294,19 @@ export async function POST(req) {
             selectedQuarter,
             selectedYear,
         } = body;
+
+        console.log('inputText:', inputText);
+        console.log('inputValue:', inputValue);
+        //console.log('chats:', chats);
+        console.log('context:', context);
+        console.log('persona:', persona);
+        console.log('foundationModel:', foundationModel);
+        console.log('fmTemperature:', fmTemperature);
+        console.log('fmMaxTokens:', fmMaxTokens);
+        console.log('previousPrompts:', previousPrompts);
+        console.log('selectedCompanies:', selectedCompanies);
+        console.log('selectedQuarter:', selectedQuarter);
+        console.log('selectedYear:', selectedYear);
 
         const stream = await generateResponse(
             inputText,

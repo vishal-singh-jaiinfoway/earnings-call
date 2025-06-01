@@ -59,13 +59,16 @@ ONLY return the JSON. Do not include any explanation or markdown formatting.
 `.trim();
   }
 
+  // Non-modification branch: allow both options.
   return `
 You are a financial data visualization assistant.
 
 Given the following financial data:
 ${JSON.stringify(request.companyData, null, 2)}
 
-Generate ONLY a JSON object with this structure:
+Generate ONLY a JSON object with one of these two structures:
+
+For chart updates:
 \`\`\`json
 {
   "type": "chart_update",
@@ -81,7 +84,15 @@ Generate ONLY a JSON object with this structure:
 }
 \`\`\`
 
-Graph type to generate: "${request.graphType}".
+For informational responses:
+\`\`\`json
+{
+  "type": "response",
+  "text": "Your response to the user's question"
+}
+\`\`\`
+
+Graph type to generate (if applicable): "${request.graphType}".
 
 Additional prompt: "${request.prompt}"
 

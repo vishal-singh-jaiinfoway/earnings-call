@@ -8,7 +8,12 @@ import dynamic from "next/dynamic";
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { suggestedQuestions } from "../../../public/data";
+import {
+  companies,
+  quarters,
+  suggestedQuestions,
+  years,
+} from "../../../public/data";
 import { ChevronDown } from "lucide-react";
 import { Menu, MenuButton, MenuItem } from "@headlessui/react";
 import { createPortal } from "react-dom";

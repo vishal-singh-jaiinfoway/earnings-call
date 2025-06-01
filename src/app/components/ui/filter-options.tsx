@@ -108,7 +108,6 @@ const customStyles: StylesConfig<OptionType, true> = {
 
 const FilterOptions = () => {
   const dispatch = useDispatch();
-  const pathname = usePathname();
   const { collapsed } = useContext(ParentContext);
 
   // Get filter configuration and current selections from redux state
@@ -162,8 +161,7 @@ const FilterOptions = () => {
   };
 
   const handleYearSelect = (selected: OptionType | MultiValue<OptionType>) => {
-
-    if (filterConfig.selectProps.companies.isMulti) {
+    if (filterConfig.selectProps.years.isMulti) {
       dispatch(
         setYear(
           (selected as MultiValue<OptionType>).map(
@@ -178,7 +176,7 @@ const FilterOptions = () => {
   };
 
   const handleQuarterSelect = (selected: OptionType | MultiValue<OptionType>) => {
-    if (filterConfig.selectProps.companies.isMulti) {
+    if (filterConfig.selectProps.quarters.isMulti) {
       dispatch(
         setQuarter(
           (selected as MultiValue<OptionType>).map(

@@ -2,20 +2,18 @@
 import { Mic, Send } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import Head from "next/head";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import DOMPurify from "dompurify";
 import dynamic from "next/dynamic";
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import {
-  suggestedQuestions,
-} from "../../../public/data";
-import {  ChevronDown } from "lucide-react";
+import { suggestedQuestions } from "../../../public/data";
+import { ChevronDown } from "lucide-react";
 import { Menu, MenuButton, MenuItem } from "@headlessui/react";
 import { createPortal } from "react-dom";
 import VoiceRecorder from "@/components/ui/voice-input";
-
+import { setFilterConfig } from "../../../store/sidebarSlice";
 
 const options = Object.entries(suggestedQuestions)?.map(([category, data]) => ({
   label: category,
@@ -59,6 +57,29 @@ export default function AggregateDashboard() {
   );
   const selectedYear = useSelector((state) => state.sidebar.selectedYear);
   const selectedQuarter = useSelector((state) => state.sidebar.selectedQuarter);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      setFilterConfig({
+        companies: companies,
+        years: years,
+        quarters: quarters,
+        selectProps: {
+          companies: {
+            isMulti: true,
+            maxSelected: 5,
+            placeholder: "Select companies",
+          },
+          years: { isMulti: false, placeholder: "Select a year" },
+          quarters: { isMulti: false, placeholder: "Select a quarter" },
+          persona: { isMulti: false, placeholder: "Select persona" },
+          model: { isMulti: false, placeholder: "Select model" },
+        },
+      }),
+    );
+  }, []);
 
   useEffect(() => {
     if (!chats.length) {

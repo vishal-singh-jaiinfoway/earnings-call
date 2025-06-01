@@ -2,16 +2,33 @@
 
 import { useState } from 'react';
 import EarningsCalendar from "./EarningsCalendar";
-import FinancialPerformance from "./FinancialPerformance";
 import FinancialReports from "./FinancialReports";
-import CompetitiveInsights from "./CompetitiveInsights";
-import Commentary from "./Commentary";
-import Guidance from "./Guidance";
 import FinancialAnalysisDashboard from "@/components/financials/FinancialAnalysisDashboard";
 
 const Dashboard = () => {
-  const [chartData, setChartData] = useState([]);
-  const [userPrompts, setUserPrompts] = useState([]);
+  // Combined state for FinancialAnalysisDashboard (including chart data, UI flags, etc.)
+  const initialFinancialState = {
+    selectedGraph: "",
+    graphPrompt: "",
+    isLoading: false,
+    graphData: null,
+    periodType: "annual",
+    error: null,
+    companyData: {},
+    isDrawerOpen: false,
+    isChatOpen: true,
+  };
+
+  // Separate state for ChatBox (conversation, input, etc.)
+  const initialChatState = {
+    messages: [],
+    inputMessage: "",
+    isWaitingForResponse: false,
+  };
+
+  const [financialState, setFinancialState] = useState(initialFinancialState);
+  const [chatState, setChatState] = useState(initialChatState);
+
   const TABS = [
     {
       id: "earnings-calendar",
@@ -22,13 +39,12 @@ const Dashboard = () => {
       id: "financial-analysis",
       label: "Financial Analysis",
       component: (
-        // <FinancialPerformance
-        //   chartData={chartData}
-        //   setChartData={setChartData}
-        //   userPrompts={userPrompts}
-        //   setUserPrompts={setUserPrompts}
-        // />
-        <FinancialAnalysisDashboard></FinancialAnalysisDashboard>
+        <FinancialAnalysisDashboard 
+          financialState={financialState}
+          setFinancialState={setFinancialState}
+          chatState={chatState}
+          setChatState={setChatState}
+        />
       ),
     },
     {
@@ -36,21 +52,6 @@ const Dashboard = () => {
       label: "Financial Reports",
       component: <FinancialReports />,
     },
-    // {
-    //   id: "competitive-insights",
-    //   label: "Competitive Strategy Insights",
-    //   component: <CompetitiveInsights />,
-    // },
-    // {
-    //   id: "commentary",
-    //   label: "Management Commentary & Market Sentiment",
-    //   component: <Commentary />,
-    // },
-    // {
-    //   id: "guidance",
-    //   label: "Forward-Looking Guidance & Risk Factors",
-    //   component: <Guidance />,
-    // },
   ];
   const [activeTab, setActiveTab] = useState(TABS[0].id);
 

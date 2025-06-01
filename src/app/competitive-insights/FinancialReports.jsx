@@ -18,7 +18,9 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setFilterConfig } from "../../../store/sidebarSlice";
+import { quarters, years, companies } from "../../../public/data";
 
 // ✅ Report Types
 const reportTypes = [
@@ -27,6 +29,7 @@ const reportTypes = [
 ];
 
 export default function FinancialReports() {
+  const dispatch = useDispatch();
   const [symbol, setSymbol] = useState("");
   const [reportType, setReportType] = useState("annual"); // ✅ Default to Annual
   const [data, setData] = useState(null);
@@ -34,15 +37,41 @@ export default function FinancialReports() {
   const selectedCompanies = useSelector(
     (state) => state.sidebar.selectedCompanies,
   );
-  // const selectedYear = useSelector((state) => state.sidebar.selectedYear);
-  // const selectedQuarter = useSelector((state) => state.sidebar.selectedQuarter);
 
   useEffect(() => {
-    console.log("Selected Compnanies :", selectedCompanies);
+    dispatch(
+      setFilterConfig({
+        companies: companies,
+        years: years,
+        quarters: quarters,
+        selectProps: {
+          companies: {
+            isMulti: false,
+            maxSelected: 1,
+            placeholder: "Select a company",
+          },
+          years: { isMulti: false, placeholder: "Select a year" },
+          quarters: { isMulti: false, placeholder: "Select a quarter" },
+          persona: { isMulti: false, placeholder: "Select persona" },
+          model: { isMulti: false, placeholder: "Select model" },
+        },
+      }),
+    );
+  }, []);
+
+  // Set initial symbol from selected companies
+  useEffect(() => {
     if (selectedCompanies?.length) {
       setSymbol(selectedCompanies[0]);
     }
   }, [selectedCompanies?.length]);
+
+  // Prefetch report whenever symbol or reportType changes
+  useEffect(() => {
+    if (symbol) {
+      fetchData();
+    }
+  }, [symbol, reportType]);
 
   // 🔍 Fetch Data from API
   const fetchData = async () => {

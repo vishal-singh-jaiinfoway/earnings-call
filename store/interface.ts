@@ -7,8 +7,8 @@ export interface SidebarState {
   fmMaxTokens: number;
   context: string;
   selectedCompanies: string[]; // Assuming it's an array of company tickers
-  selectedYear: number;
-  selectedQuarter: string;
+  selectedYear: number[];
+  selectedQuarter: string[];
   selectedCategory: string;
   earningsData: any;
 }

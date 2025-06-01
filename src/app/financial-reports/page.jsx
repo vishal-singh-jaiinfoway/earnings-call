@@ -40,6 +40,7 @@ export default function Home() {
   useEffect(() => {
     if (selectedCompanies?.length) {
       setSymbol(selectedCompanies[0].ticker);
+      fetchData()
     }
   }, [selectedCompanies]);
 

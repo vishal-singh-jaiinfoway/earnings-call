@@ -2,9 +2,53 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { companies, quarters, years } from "../public/data";
 import { SidebarState } from "./interface";
 
+interface FilterConfig {
+  companies: any[];
+  years: number[];
+  quarters: string[];
+  selectProps: {
+    companies: {
+      isMulti: boolean;
+      maxSelected: number;
+      placeholder: string;
+    };
+    years: {
+      isMulti: boolean;
+      placeholder: string;
+    };
+    quarters: {
+      isMulti: boolean;
+      placeholder: string;
+    };
+    persona: {
+      isMulti: boolean;
+      placeholder: string;
+    };
+    model: {
+      isMulti: boolean;
+      placeholder: string;
+    };
+  };
+}
 
+const initialFilterConfig: FilterConfig = {
+  companies: companies,
+  years: years,
+  quarters: quarters,
+  selectProps: {
+    companies: {
+      isMulti: true,
+      maxSelected: 5,
+      placeholder: "Select companies (max 5)",
+    },
+    years: { isMulti: false, placeholder: "Select a year" },
+    quarters: { isMulti: false, placeholder: "Select a quarter" },
+    persona: { isMulti: false, placeholder: "Select persona" },
+    model: { isMulti: false, placeholder: "Select model" },
+  },
+};
 
-const initialState: SidebarState = {
+const initialState: SidebarState & { filterConfig: FilterConfig } = {
   selectedTab: "Business Insights",
   documentsToReturn: 3,
   persona: "Controller (Chief Accounting Officer)",
@@ -13,10 +57,11 @@ const initialState: SidebarState = {
   fmMaxTokens: 2000,
   context: "",
   selectedCompanies: [],
-  selectedYear: years[0],
-  selectedQuarter: quarters[0],
+  selectedYear: [years[0]],
+  selectedQuarter: [quarters[0]],
   selectedCategory: "Common",
   earningsData: [],
+  filterConfig: initialFilterConfig,
 };
 
 // Create the slice
@@ -48,10 +93,10 @@ const sidebarSlice = createSlice({
     setCompanies(state, action: PayloadAction<string[]>) {
       state.selectedCompanies = action.payload;
     },
-    setYear(state, action: PayloadAction<number>) {
+    setYear(state, action: PayloadAction<number[]>) {
       state.selectedYear = action.payload;
     },
-    setQuarter(state, action: PayloadAction<string>) {
+    setQuarter(state, action: PayloadAction<string[]>) {
       state.selectedQuarter = action.payload;
     },
     setCategory(state, action: PayloadAction<string>) {
@@ -60,8 +105,9 @@ const sidebarSlice = createSlice({
     setEarningsData(state, action: PayloadAction<any>) {
       state.earningsData = action.payload;
     },
-
-    // Add other reducer actions for settings here if needed
+    setFilterConfig(state, action: PayloadAction<FilterConfig>) {
+      state.filterConfig = action.payload;
+    },
   },
 });
 
@@ -79,6 +125,7 @@ export const {
   setQuarter,
   setCategory,
   setEarningsData,
+  setFilterConfig,
 } = sidebarSlice.actions;
 
 // Export reducer

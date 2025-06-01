@@ -2,24 +2,24 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
 
 // Ensure AWS credentials are available
-if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+if (!process.env.M_ACCESS_KEY_ID || !process.env.M_SECRET_ACCESS_KEY) {
     throw new Error("Missing AWS credentials. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.");
 }
 
 // AWS Clients
 const s3Client = new S3Client({
-    region: process.env.AWS_REGION ?? "us-east-1",
+    region: process.env.REGION ?? "us-east-1",
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.M_ACCESS_KEY_ID,
+        secretAccessKey: process.env.M_SECRET_ACCESS_KEY,
     },
 });
 
 const bedrockClient = new BedrockRuntimeClient({
-    region: process.env.AWS_REGION ?? "us-east-1",
+    region: process.env.REGION ?? "us-east-1",
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.M_ACCESS_KEY_ID,
+        secretAccessKey: process.env.M_SECRET_ACCESS_KEY,
     },
 });
 

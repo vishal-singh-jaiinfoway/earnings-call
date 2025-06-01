@@ -4,18 +4,18 @@ const { S3 } = require("aws-sdk");
 
 // AWS Configurations
 const s3Client = new S3({
-    region: process.env.AWS_REGION ?? "us-east-1",
+    region: process.env.REGION ?? "us-east-1",
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
+        accessKeyId: process.env.M_ACCESS_KEY_ID ?? "",
+        secretAccessKey: process.env.M_SECRET_ACCESS_KEY ?? "",
     },
 });
 
 const bedrockClient = new BedrockRuntimeClient({
-    region: process.env.AWS_REGION ?? "us-east-1",
+    region: process.env.REGION ?? "us-east-1",
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
+        accessKeyId: process.env.M_ACCESS_KEY_ID ?? "",
+        secretAccessKey: process.env.M_SECRET_ACCESS_KEY ?? "",
     },
 });
 

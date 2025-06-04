@@ -135,11 +135,28 @@ const ChatStep = ({ isOpen, setIsOpen, onExploreMore, handleSwitchToVoice }) => 
           scrollToBottom();
         } else {
           clearInterval(intervalRef.current);
-          handleSend(text);
+          handleSend2(text);
         }
       }, 20);
     };
-  
+
+  const handleSend2 = (prompt) => {
+    if (!prompt || isGenerating) return;
+    setIsGenerating(true);
+
+    // Simulate AI response
+    setTimeout(() => {
+      typeResponse(
+        `Here are the most common themes and questions that emerged:
+  1. Wealth Management Business  
+  - Questions about client onboarding processes and regulatory focus  
+  - Inquiries on non-U.S. wealth management business size  
+  - Interest in growth prospects and ability to onboard new clients...`
+      );
+    }, 300);
+  };
+
+
   const typeResponse = async (text, startPrompt = false) => {
       let i = 0;
       let generatedResponse = '';
@@ -174,20 +191,68 @@ const ChatStep = ({ isOpen, setIsOpen, onExploreMore, handleSwitchToVoice }) => 
 
     };
   
-    const handleSend = (prompt) => {
+  const handleSend = async (prompt) => {
       if (!prompt || isGenerating) return;
       setIsGenerating(true);
-  
-      // Simulate AI response
-      setTimeout(() => {
-        typeResponse(
-          `Here are the most common themes and questions that emerged:
-  1. Wealth Management Business  
-  - Questions about client onboarding processes and regulatory focus  
-  - Inquiries on non-U.S. wealth management business size  
-  - Interest in growth prospects and ability to onboard new clients...`
-        );
-      }, 300);
+    // Add the user's message to the chat and clear the input
+    setMessages((prev) => [...prev, { type: 'user', text: prompt, isTyped: true }]);
+    setInputText('');
+
+    try {
+      // Call the API endpoint with the user input. Additional parameters can be added as needed.
+      const res = await fetch('/api/ai-voice-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: prompt }),
+      });
+
+      if (!res.body) throw new Error('No response body');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let fullResponse = '';
+
+      // Add an empty bot message which we will update as we receive data.
+      setMessages((prev) => [...prev, { type: 'bot', text: '', isTyped: true }]);
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n\n');
+        for (let line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.replace('data: ', '').trim();
+            if (jsonStr !== '[DONE]' && jsonStr) {
+              try {
+                const data = JSON.parse(jsonStr);
+                const chunkText = data.text;
+                fullResponse += chunkText;
+                // Update the last message with the accumulated text.
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = {
+                    ...updated[updated.length - 1],
+                    text: fullResponse,
+                  };
+                  return updated;
+                });
+                scrollToBottom();
+              } catch (err) {
+                console.error('Error parsing JSON', err);
+              }
+            }
+          }
+        }
+      }
+      setIsGenerating(false);
+      setIsResponseDone(true);
+      setIsFinalResponseDone(true);
+    } catch (err) {
+      console.error('Error fetching AI response:', err);
+      setIsGenerating(false);
+    }
     };
   
     const scrollToBottom = () => {

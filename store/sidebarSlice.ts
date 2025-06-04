@@ -8,23 +8,28 @@ interface FilterConfig {
   quarters: string[];
   selectProps: {
     companies: {
+      isDisabled: boolean;
       isMulti: boolean;
       maxSelected: number;
       placeholder: string;
     };
     years: {
+      isDisabled: boolean;
       isMulti: boolean;
       placeholder: string;
     };
     quarters: {
+      isDisabled: boolean;
       isMulti: boolean;
       placeholder: string;
     };
     persona: {
+      isDisabled: boolean;
       isMulti: boolean;
       placeholder: string;
     };
     model: {
+      isDisabled: boolean;
       isMulti: boolean;
       placeholder: string;
     };
@@ -37,14 +42,23 @@ const initialFilterConfig: FilterConfig = {
   quarters: quarters,
   selectProps: {
     companies: {
+      isDisabled: false,
       isMulti: true,
       maxSelected: 5,
       placeholder: "Select companies (max 5)",
     },
-    years: { isMulti: false, placeholder: "Select a year" },
-    quarters: { isMulti: false, placeholder: "Select a quarter" },
-    persona: { isMulti: false, placeholder: "Select persona" },
-    model: { isMulti: false, placeholder: "Select model" },
+    years: { isDisabled: false, isMulti: false, placeholder: "Select a year" },
+    quarters: {
+      isDisabled: false,
+      isMulti: false,
+      placeholder: "Select a quarter",
+    },
+    persona: {
+      isDisabled: false,
+      isMulti: false,
+      placeholder: "Select persona",
+    },
+    model: { isDisabled: false, isMulti: false, placeholder: "Select model" },
   },
 };
 

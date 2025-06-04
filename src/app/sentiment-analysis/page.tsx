@@ -110,7 +110,7 @@ export default function SentimentAnalysis() {
             {/* <CustomHeader /> */}
 
             {/* Financial & Market Metrics */}
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                 {isChartsLoading ? (
                     <div className="flex justify-center items-center h-32 text-gray-400">
                         Loading charts...
@@ -128,7 +128,7 @@ export default function SentimentAnalysis() {
 
                         </div>
                 )}
-            </div>
+            </div> */}
 
 
             {/* Sentiment Analysis Card */}

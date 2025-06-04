@@ -9,23 +9,36 @@ const openai = new OpenAI({
 // Enable streaming with AI response
 export async function POST(req) {
   try {
-    const { query ,selectedCompanies,selectedYear,selectedQuarter,selectedPersona} = await req.json();
+    const { query } = await req.json();
 
-    // Create AI completion with streaming enabled
+    const SYSTEM_MESSAGE = {
+      role: "system",
+      content: `
+You are an assistant for a web application called "Earnings Call." 
+Your role is to help users explore the app and answer their questions related to it. 
+If a query is out of context, politely decline the request. 
+If you don't know the answer, also respond politely and indicate that you don’t have that information.
+
+Context:
+- The app provides insights into earnings call transcripts.
+- In the Insights tab, users can select up to 5 companies, choose the year, quarter, and persona. They can ask questions based on those selections.
+- The Dashboard tab includes an earnings calendar, the ability to generate charts for financial metrics using AI, and access to SEC filings (Annual and Quarterly) in the Financial Reports section.
+- The Sentiments tab provides AI-generated sentiment analysis of earnings calls.
+- The Transcripts tab offers raw earnings call transcripts.
+`.trim()
+    };
+
     const completion = await openai.chat.completions.create({
       model: "mistralai/mistral-small-3.1-24b-instruct:free",
       messages: [
-        {
-            role:"system",
-            content:"You are a financial expert AI assistant.You answer questions related to earnings call of companies,and other financial things.If the user prompt is not clear enough,you ask user to make their prompt more clear.You politely decline any question out of financial domain."
-        },
-        {
-          role: "user",
-          content: query,
-        },
-      ],
-      stream: true, // Enable streaming
-    });
+    SYSTEM_MESSAGE,
+    {
+      role: "user",
+      content: query || "Can you help me understand the app?", // fallback for safety
+    },
+  ],
+  stream: true,
+});
 
     // Create a ReadableStream to push chunks to client
     const stream = new ReadableStream({

@@ -1,5 +1,5 @@
 "use client";
-import { Mic, Send } from "lucide-react";
+import { Mic, Send, ChevronDown } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,69 +8,62 @@ import dynamic from "next/dynamic";
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+
 import {
   companies,
   quarters,
   suggestedQuestions,
   years,
 } from "../../../public/data";
-import { ChevronDown } from "lucide-react";
 import { Menu, MenuButton, MenuItem } from "@headlessui/react";
-import { createPortal } from "react-dom";
-import VoiceRecorder from "@/components/ui/voice-input";
 import { setFilterConfig } from "../../../store/sidebarSlice";
+import VoiceRecorder from "@/components/ui/voice-input";
+import { createPortal } from "react-dom";
 
-const options = Object.entries(suggestedQuestions)?.map(([category, data]) => ({
+const options = Object.entries(suggestedQuestions).map(([category, data]) => ({
   label: category,
   value: category,
-  submenu: Object.entries(data).flatMap(([subCategory, questions]) =>
-    questions?.map((question) => ({
-      label: question,
-      value: question,
-    })),
+  submenu: Object.entries(data).flatMap(([_, questions]) =>
+    questions.map((q) => ({ label: q, value: q })),
   ),
 }));
 
 export default function AggregateDashboard() {
+  const dispatch = useDispatch();
+
   const [chats, setChats] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const foundationModel = useSelector((state) => state.sidebar.foundationModel);
-  const fmTemperature = useSelector((state) => state.sidebar.fmTemperature);
-  const fmMaxTokens = useSelector((state) => state.sidebar.fmMaxTokens);
-  const context = useSelector((state) => state.sidebar.context);
-  const persona = useSelector((state) => state.sidebar.persona);
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/open-router`;
-
   const [inputValue, setInputValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(
     Object.keys(suggestedQuestions)[0],
   );
   const [selectedQuestion, setSelectedQuestion] = useState(null);
-
   const [isLoading, setLoading] = useState(false);
-
-  const startRef = useRef(null);
-
-  const messagesEndRef = useRef(null);
   const [inputText, setInputText] = useState("");
   const [fetchUploadChats, setFetchUploadChats] = useState([]);
-
   const [previousPrompts, setPreviousPrompts] = useState([]);
 
+  const messagesEndRef = useRef(null);
+
+  const foundationModel = useSelector((state) => state.sidebar.foundationModel);
+  const fmTemperature = useSelector((state) => state.sidebar.fmTemperature);
+  const fmMaxTokens = useSelector((state) => state.sidebar.fmMaxTokens);
+  const context = useSelector((state) => state.sidebar.context);
+  const persona = useSelector((state) => state.sidebar.persona);
   const selectedCompanies = useSelector(
     (state) => state.sidebar.selectedCompanies,
   );
   const selectedYear = useSelector((state) => state.sidebar.selectedYear);
   const selectedQuarter = useSelector((state) => state.sidebar.selectedQuarter);
 
-  const dispatch = useDispatch();
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/open-router`;
 
   useEffect(() => {
     dispatch(
       setFilterConfig({
-        companies: companies,
-        years: years,
-        quarters: quarters,
+        companies,
+        years,
+        quarters,
         selectProps: {
           companies: {
             isMulti: true,
@@ -84,7 +77,7 @@ export default function AggregateDashboard() {
         },
       }),
     );
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!chats.length) {
@@ -95,54 +88,38 @@ export default function AggregateDashboard() {
         },
       ]);
     }
-  }, []);
+  }, [chats]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chats]);
 
   useEffect(() => {
     setInputText(
       `${inputValue} ${
-        selectedCompanies.length ? "for " + selectedCompanies.join(",") : ""
+        selectedCompanies.length ? "for " + selectedCompanies.join(", ") : ""
       } ${selectedQuarter ? "for the " + selectedQuarter + " quarter" : ""} ${
         selectedYear ? "of " + selectedYear : ""
       }`,
     );
-  }, [
-    inputValue,
-    selectedCompanies,
-    selectedCategory,
-    selectedQuarter,
-    selectedYear,
-  ]);
+  }, [inputValue, selectedCompanies, selectedQuarter, selectedYear]);
 
   const getAgentResponse = async () => {
     try {
       setLoading(true);
       setInputText("");
       setInputValue("");
-      let length = chats.length;
-      setChats((prev) => {
-        let temp = [
-          ...prev,
-          {
-            role: "user",
-            content: inputValue,
-          },
-        ];
 
-        return temp;
-      });
+      const updatedChats = [...chats, { role: "user", content: inputValue }];
+      setChats(updatedChats);
+
       const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          inputText: inputText,
+          inputText,
           inputValue,
-          chats: chats,
+          chats,
           context,
           persona,
           foundationModel,
@@ -163,69 +140,33 @@ export default function AggregateDashboard() {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) {
-          setLoading(false);
-          setPreviousPrompts((prev) => {
-            let temp = [...prev];
-            temp.push(inputText);
-            return temp;
-          });
-          break;
-        }
+        if (done) break;
         resultText += decoder.decode(value, { stream: true });
-        const sanitizedMarkdown = DOMPurify.sanitize(resultText);
-        setChats((prev) => {
-          let temp = [...prev];
-          temp[length + 1] = {
-            role: "assistant",
-            content: sanitizedMarkdown,
-          };
-          return temp;
-        });
+        const sanitized = DOMPurify.sanitize(resultText);
+        setChats((prev) => [
+          ...prev.slice(0, updatedChats.length),
+          { role: "assistant", content: sanitized },
+        ]);
       }
+
+      setPreviousPrompts((prev) => [...prev, inputText]);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching agent response:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCategoryChange = (value) => setSelectedCategory(value);
-
-  const handleInputChangeWithCompany = (event) => {
-    setInputValue(event.target.value);
-    setInputText(
-      `${event.target.value} ${
-        selectedCompanies.length ? "for " + selectedCompanies.join(",") : ""
-      } ${selectedQuarter ? "for the " + selectedQuarter + " quarter" : ""} ${
-        selectedYear ? "of " + selectedYear : ""
-      }`,
-    );
-  };
   const handleButtonClick = (question) => {
     setInputValue(question);
-    scrollToBottom();
     setSelectedQuestion(question);
   };
-
-  const scrollToTop = () => {
-    if (startRef.current) {
-      startRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   const onPromptSubmit = (e) => {
     e.preventDefault();
-    if (!selectedCompanies.length) {
+    if (!selectedCompanies.length)
       return alert("Please select at least one company");
-    }
-    if (!inputValue.trim()) {
-      return alert("Please provide some input");
-    }
+    if (!inputValue.trim()) return alert("Please provide some input");
     getAgentResponse();
   };
 
@@ -235,81 +176,54 @@ export default function AggregateDashboard() {
         <title>Aggregate Business Insights</title>
       </Head>
 
-      {/* Main Container */}
       <div className="container mx-auto p-6">
-        {/* Top Section */}
-
         <div className="mt-6 mb-6">
           <label className="block text-sm font-semibold text-gray-600 mb-2">
             Category
           </label>
           <SelectWithSubmenu
-            className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 p-2"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
             handleCategoryChange={handleCategoryChange}
             handleButtonClick={handleButtonClick}
           />
         </div>
-        {/* <SendMail /> */}
 
-        {/* Chat Window */}
         <div className="h-[55vh] overflow-y-auto bg-purple-50 shadow-md rounded-2xl p-6 space-y-4 border border-purple-200">
           {chats.map((chat, index) => (
             <div
               key={index}
-              className={`w-full p-4 rounded-xl transition-transform duration-300 shadow-sm border ${
+              className={`w-full p-4 rounded-xl shadow-sm border transition-transform duration-300 ${
                 chat.role === "user"
                   ? "bg-purple-100 text-purple-800"
                   : "bg-white text-gray-700"
               }`}
             >
-              {chat.role === "user" ? (
-                <div className="prose ml-4 text-purple-700 leading-relaxed font-medium break-words">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                  >
-                    {chat.content}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <div className="prose ml-4 leading-relaxed font-medium break-words">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                  >
-                    {chat.content}
-                  </ReactMarkdown>
-                </div>
-              )}
+              <div className="prose ml-4 leading-relaxed font-medium break-words">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
+                >
+                  {chat.content}
+                </ReactMarkdown>
+              </div>
             </div>
           ))}
+
           {isLoading && (
             <div className="flex justify-center items-center mt-4">
               <div className="animate-spin h-10 w-10 border-t-4 border-purple-500 rounded-full"></div>
             </div>
           )}
-
           <div ref={messagesEndRef} />
         </div>
-
-        {/* Input Form */}
 
         <BusinessInsightsForm
           inputValue={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onSubmit={onPromptSubmit}
           onVoiceInput={(input) => setInputValue(input)}
-        ></BusinessInsightsForm>
-      </div>
-      {/* Chat Popup */}
-      {isChatOpen && (
-        <FetchUploadPopUp
-          isOpen={isChatOpen}
-          setIsOpen={setIsChatOpen}
-          chats={fetchUploadChats}
-          setChats={setFetchUploadChats}
         />
-      )}
+      </div>
     </div>
   );
 }
@@ -376,12 +290,6 @@ function FetchUploadPopUp({ isOpen, setIsOpen, chats, setChats }) {
         prev.pop();
         return prev;
       });
-    }
-  };
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // Prevent default form submission (if inside a form)
-      getAgentResponse();
     }
   };
 
@@ -562,7 +470,7 @@ const SelectWithSubmenu = ({
                         }
                         onMouseEnter={() => openSubmenuWithDelay(option.value)}
                         onMouseLeave={closeSubmenuWithDelay}
-                        className="w-full text-left px-4 py-2 hover:bg-purple-100 font-medium text-purple-700 transition duration-150"
+                        className="w-full text-left px-4 py-2 hover:bg-purple-100 font-medium text-purple-700 transition duration-150 text-sm"
                         title={option.label}
                       >
                         {option.label}
@@ -573,7 +481,7 @@ const SelectWithSubmenu = ({
                         createPortal(
                           <div
                             ref={submenuRef}
-                            className="absolute z-50 bg-white border border-purple-300 rounded-lg shadow-md overflow-y-auto max-w-[60vw]"
+                            className="absolute z-50 bg-white border border-purple-300 rounded-lg shadow-md overflow-y-auto max-w-[60vw] text-sm"
                             style={{
                               position: "fixed",
                               top:
@@ -633,29 +541,6 @@ const SelectWithSubmenu = ({
   );
 };
 
-// const formatContent = (text) => {
-//   // Format headers
-//   text = text.replace(/^# (.*?)$/gm, "<h1>$1</h1>");
-//   text = text.replace(/^## (.*?)$/gm, "<h2>$1</h2>");
-
-//   // Bold for labels
-//   text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-//   // Line breaks and separation
-//   text = text.replace(/---/g, "<hr />");
-
-//   // Format lists
-//   text = text.replace(/- (.*?)$/gm, "<li>$1</li>");
-//   text = text.replace(/(<li>.*<\/li>)+/gm, "<ul>$&</ul>");
-
-//   return (
-//     <div
-//       className="sentiment-analysis"
-//       dangerouslySetInnerHTML={{ __html: text }}
-//     />
-//   );
-// };
-
 function BusinessInsightsForm({
   inputValue,
   onChange,
@@ -691,78 +576,3 @@ function BusinessInsightsForm({
   );
 }
 
-function SendMail({}) {
-  const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState(null);
-  const sampleChat = [
-    {
-      role: "assistant",
-      content: "👋 Hi there! How can I assist you today?",
-    },
-    {
-      role: "user",
-      content:
-        "What are the most common questions asked during the Q&A portion of earnings calls?",
-    },
-    {
-      role: "assistant",
-      content: `Here are the most common themes and questions that emerged during the Q&A portion of SoFi Technologies' Q1 2024 earnings call, tailored for a **Controller (Chief Accounting Officer)**:\n\n---\n\n### **Credit Trends and Underwriting**\n1. **Credit Performance Analysis**\n   - Questions focused on payment trends, charge-off rates, and underwriting factors influencing the credit outlook.\n\n2. **Normalization of Credit Performance**\n   - Analysts sought clarity on the timing and trajectory of normalization in credit performance toward pre-pandemic levels.\n\n---\n\n### **Deposit Growth and Pricing**\n1. **Deposit Betas**\n   - Inquiries centered on deposit betas, pricing strategies, and drivers of deposit growth, particularly in a \"higher for longer\" interest rate environment.\n\n2. **Cost of Funding**\n   - Analysts asked about the impact of lower-cost funding (e.g., deposits vs. warehouse lines) on net interest margins (NIM) and profitability.`,
-    },
-  ];
-  const sendMail = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch("/api/send-mail", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: "bs08081997@gmail.com",
-          subject: "Earnings Call Insights",
-          chatData: JSON.stringify(sampleChat),
-        }),
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        setResponse({ success: true, message: "Email sent successfully!" });
-      } else {
-        setResponse({
-          success: false,
-          message: result.error || "Failed to send email.",
-        });
-      }
-    } catch (error) {
-      setResponse({ success: false, message: "Error sending email." });
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
-      <button
-        onClick={sendMail}
-        className={`w-full p-3 text-white rounded-lg ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-gradient-to-br from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400"
-        }`}
-        disabled={loading}
-      >
-        {loading ? "Sending..." : "Send Email"}
-      </button>
-
-      {response && (
-        <div
-          className={`mt-4 text-sm ${
-            response.success ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {response.message}
-        </div>
-      )}
-    </div>
-  );
-}

@@ -126,7 +126,7 @@ const FinancialAnalysisDashboard = ({
     dispatch(
       setFilterConfig({
         companies: companies,
-        years: [2021, 2022, 2023, 2024, 2025],
+        years: [2021, 2022, 2023, 2024],
         quarters: quarters,
         selectProps: {
           companies: {

@@ -218,7 +218,7 @@ const FilterOptions = () => {
         <label className="text-sm font-medium text-gray-800 block mb-2">
           Company
         </label>
-        <Select
+        <Select isDisabled={filterConfig.selectProps.companies.isDisabled}
           options={companyOptions}
           isMulti={filterConfig.selectProps.companies.isMulti}
           value={
@@ -251,7 +251,7 @@ const FilterOptions = () => {
         <label className="text-sm font-medium text-gray-600 block mb-2">
           Year
         </label>
-        <Select
+        <Select isDisabled={filterConfig.selectProps.years.isDisabled}
           options={yearOptions}
           isMulti={filterConfig.selectProps.years.isMulti}
           value={
@@ -275,7 +275,7 @@ const FilterOptions = () => {
         <label className="text-sm font-medium text-gray-600 block mb-2">
           Quarter
         </label>
-        <Select
+        <Select isDisabled={filterConfig.selectProps.quarters.isDisabled}
           options={quarterOptions}
           isMulti={filterConfig.selectProps.quarters.isMulti}
           value={
@@ -301,7 +301,7 @@ const FilterOptions = () => {
         <label className="text-sm font-medium text-gray-600 block mb-2">
           Persona
         </label>
-        <Select
+        <Select isDisabled={filterConfig.selectProps.persona.isDisabled}
           options={personaOptions}
           isMulti={filterConfig.selectProps.persona.isMulti}
           value={
@@ -322,7 +322,7 @@ const FilterOptions = () => {
         <label className="text-sm font-medium text-gray-600 block mb-2">
           Model
         </label>
-        <Select
+        <Select isDisabled={filterConfig.selectProps.model.isDisabled}
           options={models}
           isMulti={filterConfig.selectProps.model.isMulti}
           value={

@@ -96,7 +96,7 @@ const Navbar = ({ handleLogout }) => {
   
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {isUserLoggedIn ? (
+{/*             {isUserLoggedIn ? (
               <Button
                 onClick={handleLogout}
                 variant="text"
@@ -122,10 +122,10 @@ const Navbar = ({ handleLogout }) => {
               >
                 Login
               </Button>
-            )}
+            )} */}
   
             {/* Signup Button */}
-            <Button
+{/*             <Button
               onClick={() => setIsSignupOpen(true)}
               variant="contained"
               sx={{
@@ -143,10 +143,10 @@ const Navbar = ({ handleLogout }) => {
               }}
             >
               Sign Up
-            </Button>
+            </Button> */}
   
             {/* Avatar */}
-            <Avatar alt="User" src="/avatar.jpg" sx={{ width: 36, height: 36 }} />
+{/*             <Avatar alt="User" src="/avatar.jpg" sx={{ width: 36, height: 36 }} /> */}
           </div>
         </Toolbar>
       </AppBar>

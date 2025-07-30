@@ -78,7 +78,7 @@ For chart updates:
       "labels": [...],
       "datasets": [...]
     },
-    "options": { ... },
+    "options": {"maintainAspectRatio": false, ...},
     "analysis": "string"
   }
 }

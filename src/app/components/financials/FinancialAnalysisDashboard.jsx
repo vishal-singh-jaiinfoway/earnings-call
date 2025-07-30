@@ -465,36 +465,36 @@ const FinancialAnalysisDashboard = ({
               </div>
             ) : (
              <>
-  <div className="relative">
-    {graphData && (
-      <button
-        className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
-        onClick={() => setGraphState({ isDrawerOpen: true })}
-        aria-label="Expand graph"
-      >
-        <Expand className="w-5 h-5 text-gray-600" />
-      </button>
-    )}
-  </div>
+                <div className="relative">
+                  {graphData && (
+                    <button
+                      className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
+                      onClick={() => setGraphState({ isDrawerOpen: true })}
+                      aria-label="Expand graph"
+                    >
+                      <Expand className="w-5 h-5 text-gray-600" />
+                    </button>
+                  )}
+                </div>
+                  <div className="w-full h-96 flex items-center justify-center">
+                    <div className="w-full h-full relative">
+                      <ChartContainer graphData={graphData} />
+                    </div>
+                  </div>
 
-  {/* ✅ Wrap ChartContainer with a height-constrained div */}
-  <div className="w-full h-96">
-    <ChartContainer graphData={graphData} />
-  </div>
-
-  {graphData?.analysis && (
-    <div className="mt-2">
-      <h3 className="text-md font-semibold text-gray-800 mb-3">
-        Analysis
-      </h3>
-      <div className="bg-gray-50/50 p-5 rounded-lg border border-gray-200">
-        <p className="text-gray-700 leading-relaxed text-sm">
-          {graphData.analysis}
-        </p>
-      </div>
-    </div>
-  )}
-</>
+                {graphData?.analysis && (
+                  <div className="mt-2">
+                    <h3 className="text-md font-semibold text-gray-800 mb-3">
+                      Analysis
+                    </h3>
+                    <div className="bg-gray-50/50 p-5 rounded-lg border border-gray-200">
+                      <p className="text-gray-700 leading-relaxed text-sm">
+                        {graphData.analysis}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
 
             )}
           </div>

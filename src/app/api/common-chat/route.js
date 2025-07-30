@@ -162,7 +162,7 @@ const optimizePrompt = async (previousPrompts, rawPrompt, selectedCompanies, sel
 
         // 📡 OpenRouter Payload for Prompt Optimization
         const payload = {
-            model: "deepseek/deepseek-chat:free",
+            model: "mistralai/mistral-small-3.1-24b-instruct:free",
             messages: [
                 ...chats.slice(-5),
                 {

@@ -408,7 +408,7 @@ export async function POST(req) {
 
     // 📡 Prepare OpenRouter API Request
     const payload = {
-      model: "deepseek/deepseek-chat:free",
+      model: "deepseek/deepseek-r1:free",
       messages: [
         {
           role: "user",

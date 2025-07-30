@@ -89,7 +89,7 @@ const getAnswerForPrompt = async function* (source, prompt, chats, context, pers
 
         // 🔥 OpenRouter Payload (Using the Same Prompt)
         const payload = {
-            model: "deepseek/deepseek-chat:free",
+            model: "deepseek/deepseek-r1:free",
             messages: [
                 {
                     role: "user",

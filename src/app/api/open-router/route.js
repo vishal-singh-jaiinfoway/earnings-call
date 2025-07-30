@@ -121,7 +121,7 @@ Respond in clear markdown. If the question cannot be answered with the available
         const finalMessage = `${baseInstruction}${contextBlock}\n\nPrompt:\n${prompt.trim()}${additionalContextBlock}`;
 
         const payload = {
-            model: "deepseek/deepseek-chat:free",
+            model: "deepseek/deepseek-r1:free",
             messages: [
                 {
                     role: "user",

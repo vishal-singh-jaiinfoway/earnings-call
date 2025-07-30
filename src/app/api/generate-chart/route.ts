@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     }
 
     const completion = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat:free",
+      model: "deepseek/deepseek-r1:free",
       temperature: 0.7,
       messages: [
         {
